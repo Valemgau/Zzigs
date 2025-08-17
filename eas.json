@@ -1,0 +1,38 @@
+{
+  "cli": {
+    "version": ">= 0.55.1",
+    "promptToConfigurePushNotifications": false
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "developmentClient": true
+    },
+
+    "preview2": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "preview3": {
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview4": {
+      "distribution": "internal"
+    },
+    "production": {
+      "channel": "production",
+      "ios": {
+        "image": "macos-sequoia-15.3-xcode-16.2"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

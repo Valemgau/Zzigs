@@ -1,0 +1,139 @@
+{
+  "expo": {
+    "newArchEnabled": true,
+    "name": "couture",
+    "slug": "couture",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "usesAppleSignIn": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "supportsTablet": false,
+      "bundleIdentifier": "com.couture",
+      "buildNumber": "1",
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true,
+        "CFBundleLocalizations": [
+          "fr"
+        ],
+        "CFBundleDevelopmentRegion": "fr_FR",
+        "photosPermission": "L'accès à votre bibliothèque vous permet de",
+        "NSCameraUsageDescription": "L'accès à votre caméra vous permet de",
+        "NSLocationWhenInUseUsageDescription": "Votre localisation sera utilisée pour identifier les lieux de rencontre les plus proches",
+        "NSLocationAlwaysUsageDescription": "Votre localisation sera utilisée pour identifier les lieux de rencontre les plus proches",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Votre localisation sera utilisée pour identifier les lieux de rencontre les plus proches",
+        "NSPhotoLibraryAddUsageDescription": "L'accès à votre bibliothèque vous permet de sélectionner une photo de profil.",
+        "NSPhotoLibraryUsageDescription": "L'accès à votre bibliothèque vous permet de sélectionner une photo de profil.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {
+        "googleMapsApiKey": "AIzaSyAGiSiBGEsvDTKyfQxlhgD3BFKYHp1cYKQ"
+      }
+    },
+    "android": {
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.couture",
+      "versionCode": 3,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAGiSiBGEsvDTKyfQxlhgD3BFKYHp1cYKQ"
+        }
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/logo.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "ios": {
+            "enableFullScreenImage_legacy": true,
+            "backgroundColor": "#F97316",
+            "image": "./assets/splash.png",
+            "resizeMode": "cover"
+          },
+           "android": {
+            "backgroundColor": "#F97316",
+            "image": "./assets/logo.png",
+            "imageWidth": 200,
+            "resizeMode": "cover"
+          },
+          "image": "./assets/logo.png",
+          "resizeMode": "cover",
+          "backgroundColor": "#000000",
+          "dark": {
+            "image": "./assets/splash.png",
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-google-signin/google-signin",
+      "expo-apple-authentication",
+      "expo-localization",
+      [
+        "expo-image-picker"
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
+          },
+          "ios": {
+            "deploymentTarget": "15.1",
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      [
+        "react-native-fbsdk-next",
+        {
+          "appID": "1054937686441291",
+          "scheme": "fb1054937686441291",
+          "clientToken": "d60a5aea1d0b07cbd6ee0e05c974ea77",
+          "displayName": "couture",
+          "advertiserIDCollectionEnabled": false,
+          "autoLogAppEventsEnabled": false,
+          "isAutoInitEnabled": true
+        }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.couture",
+          "enableGooglePay": true
+        }
+      ],
+      "expo-tracking-transparency",
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "9492f8a9-54a9-47ed-9065-36f1270c03e9"
+      }
+    }
+  }
+}
