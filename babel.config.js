@@ -1,13 +1,21 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: [
-      ["babel-preset-expo", { jsxImportSource: "nativewind" }],
-      "nativewind/babel",
-    ],
+    presets: ["babel-preset-expo"],
     plugins: [
       ["module:react-native-dotenv"],
-      "react-native-reanimated/plugin"
+      "nativewind/babel",
+      "react-native-reanimated/plugin",
+      [
+        "i18next-extract",
+        {
+          locales: ["fr"],
+          outputPath: "localization/{{ns}}.json",
+          keyAsDefaultValue: ["fr"],
+          keySeparator: null,
+          nsSeparator: null,
+        },
+      ],
     ],
   };
 };

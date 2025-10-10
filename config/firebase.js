@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import {
   getAuth,
@@ -26,12 +26,13 @@ const firebaseConfig = {
   appId: FIREBASE_APP_ID,
   measurementId: FIREBASE_MEASUREMENT_ID,
 };
-const app = initializeApp(firebaseConfig);
+
+// Sécurise l'init pour éviter le bug "already exists"
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
 export const db = getFirestore(app);
-export const storage = getStorage();
+export const storage = getStorage(app);
+
 export const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage),
 });
-
-
-// export const auth = initializeAuth(app);

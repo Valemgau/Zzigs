@@ -1,9 +1,10 @@
 {
   "expo": {
     "newArchEnabled": true,
-    "name": "couture",
-    "slug": "couture",
-    "version": "1.0.0",
+    "name": "zZigs",
+    "slug": "zzigs",
+    "scheme": "zzigs",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "automatic",
@@ -15,28 +16,25 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "usesAppleSignIn": true,
       "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": false,
-      "bundleIdentifier": "com.couture",
+      "bundleIdentifier": "com.zzigs",
       "buildNumber": "1",
       "infoPlist": {
+        "NSAppTransportSecurity": { "NSAllowsArbitraryLoads": true },
         "CFBundleAllowMixedLocalizations": true,
-        "CFBundleLocalizations": [
-          "fr"
-        ],
+        "CFBundleLocalizations": ["fr"],
         "CFBundleDevelopmentRegion": "fr_FR",
         "photosPermission": "L'accès à votre bibliothèque vous permet de",
-        "NSCameraUsageDescription": "L'accès à votre caméra vous permet de",
-        "NSLocationWhenInUseUsageDescription": "Votre localisation sera utilisée pour identifier les lieux de rencontre les plus proches",
-        "NSLocationAlwaysUsageDescription": "Votre localisation sera utilisée pour identifier les lieux de rencontre les plus proches",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Votre localisation sera utilisée pour identifier les lieux de rencontre les plus proches",
-        "NSPhotoLibraryAddUsageDescription": "L'accès à votre bibliothèque vous permet de sélectionner une photo de profil.",
-        "NSPhotoLibraryUsageDescription": "L'accès à votre bibliothèque vous permet de sélectionner une photo de profil.",
+        "NSCameraUsageDescription": "L'accès à votre caméra vous permet de photographier vos demandes de couture",
+        "NSLocationWhenInUseUsageDescription": "Votre localisation sera utilisée pour trouver les couturiers les plus proches de vous",
+        "NSLocationAlwaysUsageDescription": "Votre localisation sera utilisée pour trouver les couturiers les plus proches de vous",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Votre localisation sera utilisée pour trouver les couturiers les plus proches de vous",
+        "NSPhotoLibraryAddUsageDescription": "L'accès à votre bibliothèque vous permet de sélectionner des photos pour votre profil et vos demandes de couture",
+        "NSPhotoLibraryUsageDescription": "L'accès à votre bibliothèque vous permet de sélectionner des photos pour votre profil et vos demandes de couture",
         "ITSAppUsesNonExemptEncryption": false
       },
       "config": {
@@ -49,7 +47,7 @@
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.couture",
+      "package": "com.zzigs",
       "versionCode": 3,
       "config": {
         "googleMaps": {
@@ -67,72 +65,58 @@
         {
           "ios": {
             "enableFullScreenImage_legacy": true,
-            "backgroundColor": "#F97316",
+            "backgroundColor": "#801111",
             "image": "./assets/splash.png",
             "resizeMode": "cover"
           },
-           "android": {
-            "backgroundColor": "#F97316",
+          "android": {
+            "backgroundColor": "#801111",
             "image": "./assets/logo.png",
             "imageWidth": 200,
             "resizeMode": "cover"
           },
           "image": "./assets/logo.png",
           "resizeMode": "cover",
-          "backgroundColor": "#000000",
+          "backgroundColor": "#801111",
           "dark": {
             "image": "./assets/splash.png",
-            "backgroundColor": "#000000"
+            "backgroundColor": "#801111"
           }
         }
       ],
-      "@react-native-firebase/app",
-      "@react-native-firebase/auth",
-      "@react-native-google-signin/google-signin",
-      "expo-apple-authentication",
       "expo-localization",
-      [
-        "expo-image-picker"
-      ],
+      ["expo-image-picker"],
       [
         "expo-build-properties",
         {
           "android": {
+            "usesCleartextTraffic": true,
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
             "buildToolsVersion": "35.0.0"
           },
           "ios": {
+            "flipper": true,
+            "forceStaticLinking": ["RNFBApp"],
             "deploymentTarget": "15.1",
             "useFrameworks": "static"
           }
         }
       ],
       [
-        "react-native-fbsdk-next",
-        {
-          "appID": "1054937686441291",
-          "scheme": "fb1054937686441291",
-          "clientToken": "d60a5aea1d0b07cbd6ee0e05c974ea77",
-          "displayName": "couture",
-          "advertiserIDCollectionEnabled": false,
-          "autoLogAppEventsEnabled": false,
-          "isAutoInitEnabled": true
-        }
-      ],
-      [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": "merchant.com.couture",
+          "merchantIdentifier": "merchant.com.zzigs",
           "enableGooglePay": true
         }
       ],
       "expo-tracking-transparency",
-      "expo-font"
+      "expo-notifications",
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {
-        "projectId": "9492f8a9-54a9-47ed-9065-36f1270c03e9"
+        "projectId": "cf075541-f557-4ad4-b14c-7a27350239f3"
       }
     }
   }

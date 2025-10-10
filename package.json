@@ -84,18 +84,15 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
     "react-native-webview": "13.13.5",
+    "tailwindcss": "3.3.2",
     "typescript": "~5.8.3"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@expo/webpack-config": "^0.12.52",
-    "@react-native-community/cli": "latest",
-    "autoprefixer": "^10.4.14",
-    "eslint-plugin-formatjs": "^5.3.1",
-    "postcss": "^8.4.23",
-    "tailwindcss": "^3.4.17"
+    "autoprefixer": "^10.4.14"
   },
-   "overrides": {
+  "resolutions": {
     "@expo/config-plugins": "~10.1.1"
   },
   "private": true

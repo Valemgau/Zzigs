@@ -1,0 +1,1220 @@
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Pressable,
+  SafeAreaView,
+  Modal,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  Linking,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { Calendar } from "react-native-calendars";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import MapView, { Marker } from "react-native-maps";
+import { auth, db } from "../../config/firebase";
+import { COLORS } from "../styles/colors";
+import sendNotifs from "../utils/sendNotifs";
+import { showMessage } from "react-native-flash-message";
+import { MaterialIcons } from "@expo/vector-icons";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import moment from "moment";
+import "moment/locale/fr";
+import { formatDate } from "../utils/formatDate";
+import Loader from "../components/Loader";
+import { Image } from "expo-image";
+import { useTranslation } from "react-i18next";
+
+moment.locale("fr");
+
+const getCoordsFromPostal = async (postalCode, city = "") => {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?postalcode=${postalCode}&city=${encodeURIComponent(
+        city
+      )}&country=france&format=json`
+    );
+    const data = await response.json();
+    if (data.length) {
+      return {
+        latitude: parseFloat(data[0].lat),
+        longitude: parseFloat(data[0].lon),
+      };
+    }
+  } catch (error) {
+    console.error("Erreur géocodage:", error);
+  }
+  return null;
+};
+
+const ITEMS_PER_PAGE = 5;
+
+export default function ReceivedOffersScreen() {
+  const navigation = useNavigation();
+  const { t } = useTranslation();
+  const userId = auth.currentUser ? auth.currentUser.uid : null;
+
+  const [offers, setOffers] = useState([]);
+  const [displayedOffers, setDisplayedOffers] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState(null);
+  const [mapCoords, setMapCoords] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
+
+  const enrichOffersWithUser = async (offersList) => {
+    const userIds = Array.from(new Set(offersList.map((o) => o.userId)));
+    const usersData = {};
+
+    await Promise.all(
+      userIds.map(async (uid) => {
+        try {
+          const userDoc = await getDoc(doc(db, "users", uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            usersData[uid] = {
+              username: data.username ?? t("user"),
+              photo: data.photo ?? null,
+              city: data.city ?? "",
+              postalCode: data.postalCode ?? "",
+              phoneNumber: data.phoneNumber ?? "",
+              address: data.address ?? "",
+              email: data.email ?? "",
+              expoPushToken: data.expoPushToken ?? null,
+            };
+          }
+        } catch (err) {
+          console.error(`Erreur récupération utilisateur ${uid}:`, err);
+        }
+      })
+    );
+
+    return offersList.map((offer) => ({
+      ...offer,
+      username: usersData[offer.userId]?.username,
+      userPhoto: usersData[offer.userId]?.photo,
+      userCity: usersData[offer.userId]?.city,
+      userPostalCode: usersData[offer.userId]?.postalCode,
+      userPhoneNumber: usersData[offer.userId]?.phoneNumber,
+      userAddress: usersData[offer.userId]?.address,
+      userEmail: usersData[offer.userId]?.email,
+      userExpoPushToken: usersData[offer.userId]?.expoPushToken,
+    }));
+  };
+
+  const fetchAppointments = async (offerIds) => {
+    if (offerIds.length === 0) return [];
+    const appointmentsCol = collection(db, "appointments");
+    const q = query(appointmentsCol, where("offerId", "in", offerIds));
+    const snap = await getDocs(q);
+    return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  };
+
+  const loadMapCoordinates = async (enrichedOffers, appointmentsList) => {
+    const coords = {};
+    const promises = enrichedOffers.map(async (offer) => {
+      const appointment = appointmentsList.find((a) => a.offerId === offer.id);
+      if (
+        offer.status === "confirmed" &&
+        appointment?.status === "confirmed" &&
+        offer.userAddress &&
+        offer.userPostalCode &&
+        offer.userCity
+      ) {
+        const coord = await getCoordsFromPostal(
+          offer.userPostalCode,
+          offer.userCity
+        );
+        if (coord) {
+          coords[offer.id] = coord;
+        }
+      }
+    });
+    await Promise.all(promises);
+    return coords;
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!userId) {
+        setError(t("userNotConnected"));
+        setLoading(false);
+        return;
+      }
+
+      const fetchOffersAndAppointments = async () => {
+        setLoading(true);
+        try {
+          const offersRef = collection(db, "offers");
+          const q = query(offersRef, where("authorId", "==", userId));
+          const querySnapshot = await getDocs(q);
+          const offersData = [];
+
+          for (const docOffer of querySnapshot.docs) {
+            const offerData = docOffer.data();
+            let projectInfo = {};
+            if (offerData.projectId) {
+              const projectDoc = await getDoc(
+                doc(db, "projects", offerData.projectId)
+              );
+              if (projectDoc.exists()) {
+                const project = projectDoc.data();
+                projectInfo = {
+                  title: project.type || t("project"),
+                  city: project.city || "",
+                  budget: project.budget || null,
+                  photos: project.photos || [],
+                };
+              }
+            }
+            offersData.push({
+              id: docOffer.id,
+              ...offerData,
+              project: projectInfo,
+            });
+          }
+
+          const enrichedOffers = await enrichOffersWithUser(offersData);
+          const offerIds = enrichedOffers.map((offer) => offer.id);
+          const loadedAppointments = await fetchAppointments(offerIds);
+
+          const coords = await loadMapCoordinates(
+            enrichedOffers,
+            loadedAppointments
+          );
+
+          setOffers(enrichedOffers);
+          setAppointments(loadedAppointments);
+          setMapCoords(coords);
+          setDisplayedOffers(enrichedOffers.slice(0, ITEMS_PER_PAGE));
+          setCurrentPage(1);
+        } catch (e) {
+          setError(t("offersLoadError"));
+          console.error(e);
+        }
+        setLoading(false);
+      };
+
+      fetchOffersAndAppointments();
+    }, [userId, t])
+  );
+
+  const loadMoreOffers = () => {
+    if (loadingMore || displayedOffers.length >= offers.length) return;
+
+    setLoadingMore(true);
+    setTimeout(() => {
+      const nextPage = currentPage + 1;
+      const newOffers = offers.slice(0, nextPage * ITEMS_PER_PAGE);
+      setDisplayedOffers(newOffers);
+      setCurrentPage(nextPage);
+      setLoadingMore(false);
+    }, 300);
+  };
+
+  const handleUpdateStatus = async (offerId, newStatus, offer) => {
+    try {
+      await updateDoc(doc(db, "offers", offerId), { status: newStatus });
+
+      setOffers((prev) =>
+        prev.map((o) => (o.id === offerId ? { ...o, status: newStatus } : o))
+      );
+      setDisplayedOffers((prev) =>
+        prev.map((o) => (o.id === offerId ? { ...o, status: newStatus } : o))
+      );
+
+      let msgCouturier, msgClient;
+      if (newStatus === "confirmed") {
+        msgCouturier = {
+          title: t("congratulations"),
+          desc: t("offerAcceptedDescTailor", {
+            price: offer.price,
+            project: offer.project.title || t("theProject"),
+          }),
+          type: "offer_accepted",
+        };
+        msgClient = {
+          title: t("offerAcceptedTitle"),
+          desc: t("offerAcceptedDescClient", {
+            price: offer.price,
+            username: offer.username || t("thisTailor"),
+          }),
+          type: "offer_accepted",
+        };
+      } else if (newStatus === "refused") {
+        msgCouturier = {
+          title: t("offerDeclined"),
+          desc: t("offerDeclinedDesc", {
+            project: offer.project.title || t("theProject"),
+          }),
+          type: "offer_refused",
+        };
+        msgClient = {
+          title: t("offerRefusedTitle"),
+          desc: t("offerRefusedDesc", {
+            username: offer.username || t("thisTailor"),
+          }),
+          type: "offer_refused",
+        };
+      }
+
+      if (offer.userExpoPushToken)
+        await sendNotifs(
+          { id: offer.userId, expoPushToken: offer.userExpoPushToken },
+          msgCouturier
+        );
+
+      const currentUserDoc = await getDoc(doc(db, "users", userId));
+      const currentUserData = currentUserDoc.exists()
+        ? currentUserDoc.data()
+        : null;
+      if (currentUserData?.expoPushToken)
+        await sendNotifs(
+          { id: userId, expoPushToken: currentUserData.expoPushToken },
+          msgClient
+        );
+
+      showMessage({
+        message: newStatus === "confirmed" ? t("offerAccepted") : t("offerRefused"),
+        description:
+          newStatus === "confirmed"
+            ? t("tailorNotifiedProposeAppointment")
+            : t("tailorInformedDecision"),
+        type: "success",
+        icon: "success",
+      });
+    } catch (error) {
+      console.error("Erreur mise à jour statut :", error);
+      showMessage({
+        message: t("error"),
+        description: t("updateOfferStatusError"),
+        type: "danger",
+        icon: "danger",
+      });
+    }
+  };
+
+  const openAppointmentModal = (offer) => {
+    setSelectedOffer(offer);
+    setSelectedDate(null);
+    setSelectedTime(null);
+    setShowTimePicker(false);
+    setModalVisible(true);
+  };
+
+  const openCancelModal = (appointment) => {
+    setSelectedAppointment(appointment);
+    setCancelReason("");
+    setCancelModalVisible(true);
+  };
+
+  const confirmDate = (day) => {
+    setSelectedDate(day.dateString);
+    setShowTimePicker(true);
+  };
+
+  const confirmTime = (time) => {
+    setSelectedTime(time);
+  };
+
+  const availableTimes = [
+    "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+    "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00",
+    "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30",
+    "19:00", "19:30",
+  ];
+
+  const handleConfirmAppointment = async () => {
+    if (!selectedDate || !selectedTime) {
+      showMessage({
+        message: t("chooseDateAndTime"),
+        type: "warning",
+      });
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "appointments"), {
+        offerId: selectedOffer.id,
+        clientId: userId,
+        couturierId: selectedOffer.userId,
+        date: `${selectedDate}T${selectedTime}:00`,
+        status: "pending",
+        createdAt: serverTimestamp(),
+      });
+
+      const msgCouturier = {
+        title: t("newAppointmentProposedTitle"),
+        desc: t("newAppointmentProposedDesc", {
+          date: moment(`${selectedDate}T${selectedTime}`).format("dddd D MMMM à HH:mm"),
+          project: selectedOffer.project.title || t("theProject"),
+        }),
+        type: "appointment_pending",
+      };
+
+      if (selectedOffer.userExpoPushToken)
+        await sendNotifs(
+          {
+            id: selectedOffer.userId,
+            expoPushToken: selectedOffer.userExpoPushToken,
+          },
+          msgCouturier
+        );
+
+      showMessage({
+        message: t("appointmentProposed"),
+        description: t("tailorWillRespondSoon"),
+        type: "success",
+        icon: "success",
+      });
+      setModalVisible(false);
+
+      const offerIds = offers.map((o) => o.id);
+      const loadedAppointments = await fetchAppointments(offerIds);
+      setAppointments(loadedAppointments);
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement du RDV :", error);
+      showMessage({
+        message: t("error"),
+        description: t("scheduleAppointmentError"),
+        type: "danger",
+        icon: "danger",
+      });
+    }
+  };
+
+  const handleCancelAppointment = async () => {
+    if (!cancelReason.trim()) {
+      showMessage({
+        message: t("reasonRequired"),
+        description: t("reasonRequiredDesc"),
+        type: "warning",
+      });
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "appointments", selectedAppointment.id), {
+        status: "cancelled",
+        cancelReason: cancelReason.trim(),
+        cancelledAt: serverTimestamp(),
+        cancelledBy: userId,
+      });
+
+      const offer = offers.find((o) => o.id === selectedAppointment.offerId);
+
+      const msgCouturier = {
+        title: t("appointmentCancelledTitle"),
+        desc: t("appointmentCancelledDescForTailor", {
+          project: offer?.project.title || t("theProject"),
+          reason: cancelReason.trim(),
+        }),
+        type: "appointment_cancelled",
+      };
+
+      if (offer?.userExpoPushToken)
+        await sendNotifs(
+          {
+            id: offer.userId,
+            expoPushToken: offer.userExpoPushToken,
+          },
+          msgCouturier
+        );
+
+      showMessage({
+        message: t("appointmentCancelled"),
+        description: t("tailorInformedCancellation"),
+        type: "success",
+      });
+
+      setCancelModalVisible(false);
+
+      const offerIds = offers.map((o) => o.id);
+      const loadedAppointments = await fetchAppointments(offerIds);
+      setAppointments(loadedAppointments);
+    } catch (error) {
+      console.error("Erreur annulation RDV :", error);
+      showMessage({
+        message: t("error"),
+        description: t("cancelAppointmentError"),
+        type: "danger",
+      });
+    }
+  };
+
+  const handleCallPhone = (phoneNumber) => {
+    Linking.openURL(`tel:${phoneNumber}`);
+  };
+
+  const renderOffer = ({ item, index }) => {
+    const isAccepted = item?.status === "confirmed";
+    const appointment = getAppointmentForOffer(item.id);
+    const coords = mapCoords[item.id];
+    const showMap =
+      isAccepted &&
+      appointment?.status === "confirmed" &&
+      item.userAddress &&
+      coords;
+
+    return (
+      <Animated.View
+        entering={FadeInDown.duration(300).delay(index * 50)}
+        className="bg-white mb-8 overflow-hidden border-2 border-gray-200"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.12,
+          shadowRadius: 12,
+          elevation: 6,
+        }}
+      >
+        {showMap && (
+          <View style={{ height: 240, width: "100%", position: "relative" }}>
+            <MapView
+              style={{ flex: 1 }}
+              initialRegion={{
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+                latitudeDelta: 0.008,
+                longitudeDelta: 0.008,
+              }}
+              scrollEnabled={false}
+              zoomEnabled={false}
+              pitchEnabled={false}
+              rotateEnabled={false}
+            >
+              <Marker
+                coordinate={coords}
+                title={t("appointment")}
+                description={item.userAddress}
+              >
+                <View
+                  className="w-12 h-12 items-center justify-center"
+                  style={{
+                    backgroundColor: COLORS.primary,
+                    shadowColor: COLORS.primary,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 4,
+                  }}
+                >
+                  <MaterialIcons name="place" size={28} color="#fff" />
+                </View>
+              </Marker>
+            </MapView>
+
+            <View
+              className="absolute bottom-0 left-0 right-0 p-4"
+              style={{
+                backgroundColor: "rgba(0,0,0,0.75)",
+              }}
+            >
+              <View className="flex-row items-center">
+                <MaterialIcons name="place" size={20} color="#fff" />
+                <Text
+                  className="text-white text-sm ml-2 flex-1"
+                  style={{ fontFamily: "OpenSans_600SemiBold" }}
+                  numberOfLines={2}
+                >
+                  {item.userAddress}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        <View className="p-5 border-b border-gray-100">
+          <View className="flex-row items-center mb-3">
+            {item.userPhoto ? (
+              <Image
+                source={{ uri: item.userPhoto }}
+                className="w-14 h-14 bg-gray-200 mr-3"
+              />
+            ) : (
+              <View
+                className="w-14 h-14 mr-3 items-center justify-center"
+                style={{ backgroundColor: COLORS.primary }}
+              >
+                <Text
+                  className="text-white text-xl"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {item.username?.charAt(0)?.toUpperCase() || "U"}
+                </Text>
+              </View>
+            )}
+            <View className="flex-1">
+              <Text
+                className="text-base text-gray-900 mb-1"
+                style={{ fontFamily: "OpenSans_700Bold" }}
+              >
+                {item.username || t("user")}
+              </Text>
+              <View className="flex-row items-center">
+                <MaterialIcons name="location-on" size={14} color="#9CA3AF" />
+                <Text
+                  className="text-sm text-gray-600 ml-1"
+                  style={{ fontFamily: "OpenSans_400Regular" }}
+                >
+                  {item.userCity && item.userPostalCode
+                    ? `${item.userCity} (${item.userPostalCode})`
+                    : t("notSpecified")}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View className="flex-row justify-between items-start mb-2">
+            <Text
+              className="text-xl flex-1 mr-2"
+              style={{ fontFamily: "OpenSans_700Bold", color: COLORS.primary }}
+              numberOfLines={1}
+            >
+              {item.project.title}
+            </Text>
+            {item.project.budget && (
+              <View
+                className="px-4 py-1.5 flex-row items-center"
+                style={{ backgroundColor: COLORS.primary }}
+              >
+                <MaterialIcons name="euro" size={16} color="#fff" />
+                <Text
+                  className="text-white text-sm ml-1"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {item.project.budget}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <Text
+            className="text-lg text-gray-700 mb-1"
+            style={{ fontFamily: "OpenSans_600SemiBold" }}
+          >
+            {t("proposedPrice")} : {item.price} €
+          </Text>
+
+          {item.message && (
+            <Text
+              className="text-sm text-gray-600 mt-2"
+              style={{ fontFamily: "OpenSans_400Regular" }}
+            >
+              {item.message}
+            </Text>
+          )}
+
+          <View className="mt-4">
+            <View
+              className="px-4 py-2 self-start"
+              style={{
+                backgroundColor:
+                  item?.status === "pending"
+                    ? "#FFA50020"
+                    : item?.status === "confirmed"
+                    ? "#10B98120"
+                    : "#EF444420",
+              }}
+            >
+              <Text
+                className="text-xs"
+                style={{
+                  fontFamily: "OpenSans_700Bold",
+                  color:
+                    item?.status === "pending"
+                      ? "#F59E0B"
+                      : item?.status === "confirmed"
+                      ? "#10B981"
+                      : "#EF4444",
+                }}
+              >
+                {item?.status === "pending"
+                  ? t("waitingForYourDecision")
+                  : item?.status === "confirmed"
+                  ? t("accepted")
+                  : t("refused")}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {isAccepted && appointment && (
+          <View className="p-5 border-t border-gray-200">
+            {appointment.status === "pending" && (
+              <View className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-3">
+                <View className="flex-row items-center mb-2">
+                  <MaterialIcons name="schedule" size={22} color="#3B82F6" />
+                  <Text
+                    className="text-sm text-blue-800 ml-2"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("appointmentAwaitingConfirmation")}
+                  </Text>
+                </View>
+                <Text
+                  className="text-4xl text-blue-900 mb-1"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {moment(appointment.date).format("dddd D MMMM")}
+                </Text>
+                <Text
+                  className="text-2xl text-blue-800"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {t("at")} {moment(appointment.date).format("HH:mm")}
+                </Text>
+                <Text
+                  className="text-xs text-blue-700 mt-2"
+                  style={{ fontFamily: "OpenSans_400Regular" }}
+                >
+                  {t("tailorMustAcceptSlot")}
+                </Text>
+              </View>
+            )}
+
+            {appointment.status === "confirmed" && (
+              <View className="bg-green-50 border-l-4 border-green-500 p-4 mb-3">
+                <View className="flex-row items-center mb-2">
+                  <MaterialIcons
+                    name="check-circle"
+                    size={22}
+                    color="#10B981"
+                  />
+                  <Text
+                    className="text-sm text-green-800 ml-2"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("confirmedAppointment")}
+                  </Text>
+                </View>
+                <Text
+                  className="text-4xl text-green-900 mb-1"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {moment(appointment.date).format("dddd D MMMM")}
+                </Text>
+                <Text
+                  className="text-2xl text-green-800 mb-2"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {t("at")} {moment(appointment.date).format("HH:mm")}
+                </Text>
+                <Text
+                  className="text-xs text-green-700"
+                  style={{ fontFamily: "OpenSans_400Regular" }}
+                >
+                  {t("tailorAwaitingYou")}
+                </Text>
+              </View>
+            )}
+
+            {appointment.status === "inProgress" && (
+              <View className="bg-orange-50 border-l-4 border-orange-500 p-4 mb-3">
+                <View className="flex-row items-center mb-2">
+                  <MaterialIcons
+                    name="hourglass-empty"
+                    size={22}
+                    color="#F59E0B"
+                  />
+                  <Text
+                    className="text-sm text-orange-800 ml-2"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("missionInProgress")}
+                  </Text>
+                </View>
+                <Text
+                  className="text-xs text-orange-700"
+                  style={{ fontFamily: "OpenSans_400Regular" }}
+                >
+                  {t("tailorWorkingOnProject")}
+                </Text>
+              </View>
+            )}
+
+            {appointment.status === "waitPayment" && (
+              <View className="bg-purple-50 border-l-4 border-purple-500 p-4 mb-3">
+                <View className="flex-row items-center mb-2">
+                  <MaterialIcons name="payment" size={22} color="#8B5CF6" />
+                  <Text
+                    className="text-sm text-purple-800 ml-2"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("missionCompletedPaymentRequired")}
+                  </Text>
+                </View>
+                <Text
+                  className="text-xs text-purple-700 mb-3"
+                  style={{ fontFamily: "OpenSans_400Regular" }}
+                >
+                  {t("paymentInstructions", { price: item.price })}
+                </Text>
+                <View className="bg-purple-100 p-3">
+                  <Text
+                    className="text-xs text-purple-900"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("paymentWarning")}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {appointment.status === "paymentConfirmed" && (
+              <View className="bg-green-50 border-l-4 border-green-500 p-4 mb-3">
+                <View className="flex-row items-center mb-2">
+                  <MaterialIcons
+                    name="check-circle"
+                    size={22}
+                    color="#10B981"
+                  />
+                  <Text
+                    className="text-sm text-green-800 ml-2"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("missionCompletedAndPaid")}
+                  </Text>
+                </View>
+                <Text
+                  className="text-xs text-green-700"
+                  style={{ fontFamily: "OpenSans_400Regular" }}
+                >
+                  {t("thankYouForUsing")}
+                </Text>
+              </View>
+            )}
+
+            {appointment.status === "cancelled" && (
+              <View className="bg-red-50 border-l-4 border-red-500 p-4 mb-3">
+                <View className="flex-row items-center mb-2">
+                  <MaterialIcons name="cancel" size={22} color="#EF4444" />
+                  <Text
+                    className="text-sm text-red-800 ml-2"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("appointmentCancelled")}
+                  </Text>
+                </View>
+                {appointment.cancelReason && (
+                  <Text
+                    className="text-xs text-red-700"
+                    style={{ fontFamily: "OpenSans_400Regular" }}
+                  >
+                    {t("reason")} : {appointment.cancelReason}
+                  </Text>
+                )}
+              </View>
+            )}
+          </View>
+        )}
+
+        <View className="p-5 border-t border-gray-100 flex-row flex-wrap gap-2">
+          {item?.status === "pending" && (
+            <>
+              <Pressable
+                onPress={() => handleUpdateStatus(item.id, "confirmed", item)}
+                className="px-5 py-3 flex-1"
+                style={{ backgroundColor: "#10B981", minWidth: 140 }}
+              >
+                <Text
+                  className="text-white text-sm text-center"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {t("acceptOffer")}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleUpdateStatus(item.id, "refused", item)}
+                className="px-5 py-3 flex-1"
+                style={{ backgroundColor: "#EF4444", minWidth: 140 }}
+              >
+                <Text
+                  className="text-white text-sm text-center"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {t("refuse")}
+                </Text>
+              </Pressable>
+            </>
+          )}
+
+          {isAccepted && !appointment && (
+            <Pressable
+              onPress={() => openAppointmentModal(item)}
+              className="px-5 py-3 flex-1"
+              style={{ backgroundColor: COLORS.primary }}
+            >
+              <Text
+                className="text-white text-sm text-center"
+                style={{ fontFamily: "OpenSans_700Bold" }}
+              >
+                {t("proposeAppointment")}
+              </Text>
+            </Pressable>
+          )}
+
+          {isAccepted &&
+            appointment &&
+            (appointment.status === "pending" ||
+              appointment.status === "confirmed") && (
+              <>
+                {item.userPhoneNumber && (
+                  <Pressable
+                    onPress={() => handleCallPhone(item.userPhoneNumber)}
+                    className="px-5 py-3 flex-1"
+                    style={{ backgroundColor: "#10B981", minWidth: 140 }}
+                  >
+                    <View className="flex-row items-center justify-center">
+                      <MaterialIcons name="phone" size={18} color="#fff" />
+                      <Text
+                        className="text-white text-sm ml-2"
+                        style={{ fontFamily: "OpenSans_700Bold" }}
+                      >
+                        {t("call")}
+                      </Text>
+                    </View>
+                  </Pressable>
+                )}
+                <Pressable
+                  onPress={() => openCancelModal(appointment)}
+                  className="px-5 py-3 flex-1"
+                  style={{ backgroundColor: "#EF4444", minWidth: 140 }}
+                >
+                  <Text
+                    className="text-white text-sm text-center"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("cancel")}
+                  </Text>
+                </Pressable>
+              </>
+            )}
+
+          {appointment?.status === "waitPayment" && (
+            <Pressable
+              onPress={() => {
+                navigation.navigate("PayScreen", {
+                  appointmentId: appointment.id,
+                  amount: item.price,
+                });
+              }}
+              className="px-5 py-3 flex-1"
+              style={{ backgroundColor: "#8B5CF6" }}
+            >
+              <View className="flex-row items-center justify-center">
+                <MaterialIcons name="payment" size={18} color="#fff" />
+                <Text
+                  className="text-white text-sm ml-2"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {t("payNow")}
+                </Text>
+              </View>
+            </Pressable>
+          )}
+        </View>
+      </Animated.View>
+    );
+  };
+
+  const getAppointmentForOffer = (offerId) =>
+    appointments.find((a) => a.offerId === offerId);
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View className="py-4">
+        <ActivityIndicator size="small" color={COLORS.primary} />
+      </View>
+    );
+  };
+
+  if (loading) return <Loader />;
+
+  if (error)
+    return (
+      <SafeAreaView className="flex-1 bg-gray-50">
+        <View className="flex-1 justify-center items-center px-6">
+          <MaterialIcons name="error-outline" size={64} color="#EF4444" />
+          <Text
+            className="text-gray-700 text-lg text-center mt-4 mb-6"
+            style={{ fontFamily: "OpenSans_600SemiBold" }}
+          >
+            {error}
+          </Text>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            className="px-6 py-3"
+            style={{ backgroundColor: COLORS.primary }}
+          >
+            <Text
+              className="text-white text-base"
+              style={{ fontFamily: "OpenSans_700Bold" }}
+            >
+              {t("back")}
+            </Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+
+  if (offers.length === 0)
+    return (
+      <SafeAreaView className="flex-1 bg-gray-50">
+        <View className="flex-1 justify-center items-center px-6">
+          <MaterialIcons name="inbox" size={64} color="#D1D5DB" />
+          <Text
+            className="text-gray-500 text-lg text-center mt-4 mb-6"
+            style={{ fontFamily: "OpenSans_600SemiBold" }}
+          >
+            {t("noOffersReceived")}
+          </Text>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            className="px-6 py-3"
+            style={{ backgroundColor: COLORS.primary }}
+          >
+            <Text
+              className="text-white text-base"
+              style={{ fontFamily: "OpenSans_700Bold" }}
+            >
+              {t("back")}
+            </Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+
+  return (
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <FlatList
+        data={displayedOffers}
+        keyExtractor={(item) => item.id}
+        renderItem={renderOffer}
+        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+        onEndReached={loadMoreOffers}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
+      />
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 justify-center px-5"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          activeOpacity={1}
+          onPressOut={() => setModalVisible(false)}
+        >
+          <View className="bg-white p-6">
+            <Text
+              className="text-2xl mb-5 text-center"
+              style={{ fontFamily: "OpenSans_700Bold", color: COLORS.primary }}
+            >
+              {t("proposeAppointment")}
+            </Text>
+
+            {!selectedDate && (
+              <Calendar
+                onDayPress={confirmDate}
+                minDate={new Date().toISOString().split("T")[0]}
+                markedDates={
+                  selectedDate
+                    ? {
+                        [selectedDate]: {
+                          selected: true,
+                          selectedColor: COLORS.primary,
+                        },
+                      }
+                    : {}
+                }
+                theme={{
+                  selectedDayBackgroundColor: COLORS.primary,
+                  todayTextColor: COLORS.primary,
+                  arrowColor: COLORS.primary,
+                }}
+              />
+            )}
+
+            {selectedDate && showTimePicker && (
+              <>
+                <Text
+                  className="text-lg text-center mb-4"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {moment(selectedDate).format("dddd D MMMM YYYY")}
+                </Text>
+                <ScrollView style={{ maxHeight: 220 }}>
+                  {availableTimes.map((time) => (
+                    <Pressable
+                      key={time}
+                      onPress={() => confirmTime(time)}
+                      className={`py-3 px-4 mb-2 border ${
+                        selectedTime === time
+                          ? "border-transparent"
+                          : "border-gray-300"
+                      }`}
+                      style={{
+                        backgroundColor:
+                          selectedTime === time ? COLORS.primary : "#fff",
+                      }}
+                    >
+                      <Text
+                        className="text-center text-base"
+                        style={{
+                          fontFamily: "OpenSans_700Bold",
+                          color: selectedTime === time ? "#fff" : "#374151",
+                        }}
+                      >
+                        {time}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </>
+            )}
+
+            <View className="flex-row justify-end mt-6">
+              <Pressable
+                onPress={() => setModalVisible(false)}
+                className="px-5 py-3 mr-2 bg-gray-300"
+              >
+                <Text
+                  className="text-gray-700 text-sm"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {t("cancel")}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={handleConfirmAppointment}
+                disabled={!selectedDate || !selectedTime}
+                className="px-5 py-3"
+                style={{
+                  backgroundColor:
+                    !selectedDate || !selectedTime ? "#D1D5DB" : COLORS.primary,
+                }}
+              >
+                <Text
+                  className="text-white text-sm"
+                  style={{ fontFamily: "OpenSans_700Bold" }}
+                >
+                  {t("propose")}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        visible={cancelModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCancelModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <TouchableOpacity
+            className="flex-1 justify-center px-5"
+            activeOpacity={1}
+            onPressOut={() => setCancelModalVisible(false)}
+          >
+            <View style={{ padding: 10 }} className="bg-white p-6">
+              <Text
+                className="text-2xl mb-5 text-center"
+                style={{ fontFamily: "OpenSans_700Bold", color: "#EF4444" }}
+              >
+                {t("cancelMission")}
+              </Text>
+
+              <Text
+                className="text-sm text-gray-700 mb-3"
+                style={{ fontFamily: "OpenSans_400Regular" }}
+              >
+                {t("indicateCancellationReason")}
+              </Text>
+
+              <TextInput
+                value={cancelReason}
+                onChangeText={setCancelReason}
+                placeholder={t("cancelReasonClientPlaceholder")}
+                placeholderTextColor="#9CA3AF"
+                multiline
+                className="bg-gray-50 border border-gray-300 p-4 mb-5 min-h-[120px] text-base"
+                style={{
+                  fontFamily: "OpenSans_400Regular",
+                  textAlignVertical: "top",
+                }}
+              />
+
+              <View className="flex-row justify-end">
+                <Pressable
+                  onPress={() => setCancelModalVisible(false)}
+                  className="px-5 py-3 mr-2 bg-gray-300"
+                >
+                  <Text
+                    className="text-gray-700 text-sm"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("back")}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleCancelAppointment}
+                  disabled={!cancelReason.trim()}
+                  className="px-5 py-3"
+                  style={{
+                    backgroundColor: !cancelReason.trim()
+                      ? "#D1D5DB"
+                      : "#EF4444",
+                  }}
+                >
+                  <Text
+                    className="text-white text-sm"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("confirmCancellation")}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </Modal>
+    </SafeAreaView>
+  );
+}

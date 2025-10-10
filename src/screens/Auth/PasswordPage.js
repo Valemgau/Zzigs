@@ -1,120 +1,135 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
   Pressable,
+  ActivityIndicator,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import auth from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
-import moment from "moment";
-import { useNavigation } from "@react-navigation/native";
-import { showMessage } from "react-native-flash-message";
+import { MaterialIcons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { createUniqueUsername } from "../../utils/allFunctions";
+import { useNavigation } from "@react-navigation/native";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../../../config/firebase";
 import { COLORS } from "../../styles/colors";
-import i18n from "../../../i18n";
-import { sendWelcomeEmail } from "../../utils/sendMails";
+import { useTranslation } from "react-i18next";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { showMessage } from "react-native-flash-message";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Image } from "expo-image";
 
-const PasswordPage = ({ route }) => {
+export default function PasswordPage() {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
   const [loading, setLoading] = useState(false);
 
-  const handlePasswordSubmit = async () => {
-    if (email.trim() === "") {
+  // useEffect(() => {
+  //   getLastLogin();
+  // }, []);
+
+  async function getLastLogin() {
+    try {
+      const value = await AsyncStorage.getItem("USER_LAST_LOGIN");
+      if (value !== null) {
+        Alert.alert(
+          t("lastLoginTitle"),
+          t("lastLoginDesc"),
+          [
+            {
+              text: t("yes"),
+              onPress: () => {
+                const userLastLogin = JSON.parse(value);
+                setEmail(userLastLogin.email);
+                setPassword(userLastLogin.password);
+              },
+            },
+            {
+              text: t("no"),
+              style: "cancel",
+            },
+          ],
+          { cancelable: true }
+        );
+      }
+    } catch (error) {
+      console.error("Erreur récupération dernière connexion:", error);
+    }
+  }
+
+  const handlePasswordSubmit = async (email, password) => {
+    if (!email.trim()) {
       showMessage({
-        message: "Veuillez entrer une adresse e-mail valide.",
-        type: "danger",
+        message: t("emailRequired"),
+        description: t("emailRequiredDesc"),
+        type: "warning",
+        icon: "warning",
       });
       return;
     }
+
     if (password.trim().length < 6) {
       showMessage({
-        message: "Le mot de passe doit contenir au moins 6 caractères.",
-        type: "danger",
+        message: t("passwordTooShort"),
+        description: t("passwordTooShortDesc"),
+        type: "warning",
+        icon: "warning",
       });
       return;
     }
 
     setLoading(true);
-
     try {
-      await auth().signInWithEmailAndPassword(email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+
+      const jsonValue = JSON.stringify({
+        email: email.trim(),
+        password,
+      });
+      await AsyncStorage.setItem("USER_LAST_LOGIN", jsonValue);
+
+      await updateDoc(doc(db, "users", userCredential.user.uid), {
+        lastLogin: serverTimestamp(),
+      });
     } catch (error) {
-      if (error.code === "auth/user-not-found") {
-        // Propose de créer un compte si aucun utilisateur n'est trouvé
-        Alert.alert(
-          "Compte non trouvé",
-          "Aucun compte n'existe avec cet email. Voulez-vous créer un nouveau compte ?",
-          [
-            {
-              text: "Créer un compte",
-              onPress: async () => {
-                try {
-                  // Création du compte utilisateur
-                  const userCredential =
-                    await auth().createUserWithEmailAndPassword(
-                      email,
-                      password
-                    );
-                  const email = userCredential.user.email;
-                  const userName = createUniqueUsername(email);
-                  // Création d'un document Firestore pour l'utilisateur
-                  await firestore()
-                    .collection("users")
-                    .doc(userCredential.user.uid)
-                    .set({
-                      interests: [],
-                      showMyProfile: true,
-                      email: email,
-                      username: userName,
-                      createdAt: moment().format(), // Ajout de l'horodatage
-                    });
-                  await sendWelcomeEmail(email, userName).catch(console.error);
-                } catch (createError) {
-                  showMessage({
-                    message:
-                      "Impossible de créer le compte. Veuillez réessayer plus tard",
-                    type: "danger",
-                  });
-                } finally {
-                  setLoading(false);
-                }
-              },
-            },
-            {
-              text: "Annuler",
-              style: "cancel",
-              onPress: () => {
-                navigation.goBack(); // Retourne à la page précédente
-              },
-            },
-          ]
-        );
+      console.error("Erreur connexion:", error);
+
+      if (error.code === "auth/invalid-email") {
+        showMessage({
+          message: t("invalidEmail"),
+          description: t("invalidEmailDesc"),
+          type: "danger",
+          icon: "danger",
+        });
+      } else if (error.code === "auth/user-not-found") {
+        showMessage({
+          message: t("accountNotFound"),
+          description: t("accountNotFoundDesc"),
+          type: "danger",
+          icon: "danger",
+        });
       } else if (error.code === "auth/wrong-password") {
         showMessage({
-          message: "Le mot de passe est incorrect. Veuillez réessayer.",
+          message: t("incorrectPassword"),
+          description: t("incorrectPasswordDesc"),
           type: "danger",
-        });
-      } else if (error.code === "auth/invalid-email") {
-        showMessage({
-          message: "L'adresse email est invalide. Veuillez la vérifier.",
-          type: "danger",
+          icon: "danger",
         });
       } else {
         showMessage({
-          message: "Une erreur est survenue. Veuillez réessayer plus tard.",
+          message: t("loginFailed"),
+          description: t("loginFailedDesc"),
           type: "danger",
+          icon: "danger",
         });
       }
     } finally {
@@ -123,37 +138,60 @@ const PasswordPage = ({ route }) => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-gray-900">
+    <SafeAreaView className="flex-1 bg-gray-50">
       <KeyboardAwareScrollView
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
         enableOnAndroid
         extraHeight={200}
-        className="bg-white dark:bg-gray-900"
+        showsVerticalScrollIndicator={false}
       >
-        <Animated.View
-          entering={FadeInDown.duration(100)}
-          className="flex-1 px-6 pt-8"
-        >
-          {/* En-tête */}
-          <View className="mb-8">
-            <Text
-              style={{ fontFamily: "Inter_700Bold" }}
-              className="text-3xl font-bold text-gray-900 dark:text-white mb-2"
-            >
-              {i18n.t("connectez_vous_a_votre_compte")}
-            </Text>
-          </View>
+        <View className="flex-1 px-6 pt-12">
+          {/* Logo centré */}
+          <Animated.View 
+            entering={FadeInDown.duration(300)} 
+            className="items-center mb-6"
+          >
+            <View className="w-16 h-16 rounded overflow-hidden bg-white shadow-lg">
+              <Image
+                source={require("../../../assets/logo.png")}
+                className="w-full h-full"
+                contentFit="cover"
+              />
+            </View>
+          </Animated.View>
 
-          {/* Champ email */}
-          <View className="mb-6">
+          <Animated.View entering={FadeInDown.duration(300).delay(50)} className="mb-10 items-center">
+            <Text
+              className="text-2xl font-bold text-gray-900 mb-2 text-center"
+              style={{ fontFamily: "OpenSans_700Bold" }}
+            >
+              {t("loginTitle")}
+            </Text>
+            <Text
+              className="text-base text-gray-600 text-center"
+              style={{ fontFamily: "OpenSans_400Regular" }}
+            >
+              {t("loginSubtitle")}
+            </Text>
+          </Animated.View>
+
+          <Animated.View
+            entering={FadeInDown.duration(300).delay(100)}
+            className="mb-5"
+          >
+            <Text
+              className="text-xs text-gray-500 mb-2 uppercase tracking-wider text-center"
+              style={{ fontFamily: "OpenSans_600SemiBold" }}
+            >
+              {t("email")}
+            </Text>
             <View className="relative">
+              <View className="absolute left-4 z-10" style={{ top: 17 }}>
+                <MaterialIcons name="email" size={20} color="#6B7280" />
+              </View>
               <TextInput
-                style={{
-                  fontFamily: "Inter_400Regular",
-                  height: 56,
-                }}
-                placeholder="Votre adresse email"
+                placeholder={t("emailPlaceholder")}
                 placeholderTextColor="#9CA3AF"
                 value={email}
                 onChangeText={setEmail}
@@ -161,96 +199,146 @@ const PasswordPage = ({ route }) => {
                 autoCapitalize="none"
                 autoCorrect={false}
                 textContentType="emailAddress"
-                className="bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-lg rounded-xl  pl-12 pb-2 pr-12 border border-gray-300 dark:border-gray-700"
-              />
-              <View className="absolute left-4 top-5">
-                <Ionicons name="mail-outline" size={24} color="#6B7280" />
-              </View>
-            </View>
-          </View>
-
-          {/* Champ mot de passe */}
-          <View className="mb-6">
-            <View className="relative">
-              <TextInput
+                className="bg-white border border-gray-200 text-gray-900 text-base pl-12 pr-4 py-3"
                 style={{
-                  fontFamily: "Inter_400Regular",
-                  height: 56,
+                  fontFamily: "OpenSans_400Regular",
+                  height: 52,
+                  paddingVertical: 0,
                 }}
-                placeholder="Votre mot de passe"
+              />
+            </View>
+          </Animated.View>
+
+          <Animated.View
+            entering={FadeInDown.duration(300).delay(150)}
+            className="mb-2"
+          >
+            <Text
+              className="text-xs text-gray-500 mb-2 uppercase tracking-wider text-center"
+              style={{ fontFamily: "OpenSans_600SemiBold" }}
+            >
+              {t("password")}
+            </Text>
+            <View className="relative">
+              <View className="absolute left-4 z-10" style={{ top: 16 }}>
+                <MaterialIcons name="lock" size={20} color="#6B7280" />
+              </View>
+              <TextInput
+                placeholder="••••••••"
                 placeholderTextColor="#9CA3AF"
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
-                className="bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-lg rounded-xl px-4 pl-12 pr-12 border border-gray-300 dark:border-gray-700"
+                textContentType="password"
+                className="bg-white border border-gray-200 text-gray-900 text-base pl-12 pr-12 py-3"
+                style={{
+                  fontFamily: "OpenSans_400Regular",
+                  height: 52,
+                  paddingVertical: 0,
+                }}
               />
-              <View className="absolute left-4 top-4">
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={24}
-                  color="#6B7280"
-                />
-              </View>
               <Pressable
                 onPress={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-4"
+                className="absolute right-4 z-10"
+                style={{ top: 16 }}
               >
-                <Ionicons
-                  name={showPassword ? "eye-off-outline" : "eye-outline"}
-                  size={24}
+                <MaterialIcons
+                  name={showPassword ? "visibility-off" : "visibility"}
+                  size={20}
                   color="#6B7280"
                 />
               </Pressable>
             </View>
+          </Animated.View>
 
+          <Animated.View
+            entering={FadeInDown.duration(300).delay(200)}
+            className="mb-8"
+          >
             <Pressable
               onPress={() => navigation.navigate("ForgotPassword")}
-              className="mt-2"
+              className="self-center"
             >
-              <Text className="text-orange-600 dark:text-orange-400 text-right text-sm">
-                {i18n.t("mot_de_passe_oublie")}
+              <Text
+                className="text-sm"
+                style={{
+                  fontFamily: "OpenSans_600SemiBold",
+                  color: COLORS.secondary,
+                }}
+              >
+                {t("forgotPassword")}
               </Text>
             </Pressable>
-          </View>
+          </Animated.View>
 
-          {/* Bouton de connexion */}
-          <Pressable
-            style={{
-              backgroundColor: COLORS.primary,
-              opacity: loading || !password ? 0.5 : 1,
-            }} // Changez la couleur de fond ici
-            onPress={handlePasswordSubmit}
-            disabled={loading || !password}
-            className={`py-3 rounded-xl flex-row items-center justify-center`}
+          <Animated.View
+            entering={FadeInDown.duration(300).delay(250)}
+            className="mb-4"
           >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <>
-                <Text className="text-white font-semibold text-lg mr-2">
-                  {i18n.t("se_connecter")}
-                </Text>
-              </>
-            )}
-          </Pressable>
-
-          {/* Message d'aide */}
-          <Text className="text-center text-gray-500 dark:text-gray-400 mt-8 mb-6">
-            En continuant, vous acceptez nos{" "}
             <Pressable
-              onPress={() =>
-                Linking.openURL("https://connectetmove.com/termes.html")
-              }
+              onPress={() => handlePasswordSubmit(email, password)}
+              disabled={loading || !email || !password}
+              className="py-4 items-center"
+              style={{
+                backgroundColor:
+                  loading || !email || !password ? "#D1D5DB" : COLORS.primary,
+              }}
             >
-              <Text className="text-orange-600 dark:text-orange-400">
-                {i18n.t("conditions_dutilisation")}
-              </Text>
+              {loading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <View className="flex-row items-center">
+                  <MaterialIcons name="login" size={18} color="#fff" />
+                  <Text
+                    className="text-sm font-bold text-white ml-2 uppercase tracking-wider"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("login")}
+                  </Text>
+                </View>
+              )}
             </Pressable>
-          </Text>
-        </Animated.View>
+          </Animated.View>
+
+          <Animated.View
+            entering={FadeInDown.duration(300).delay(300)}
+            className="flex-row items-center my-6"
+          >
+            <View className="flex-1 h-px bg-gray-300" />
+            <Text
+              className="px-4 text-xs text-gray-400 uppercase tracking-wider"
+              style={{ fontFamily: "OpenSans_600SemiBold" }}
+            >
+              {t("or")}
+            </Text>
+            <View className="flex-1 h-px bg-gray-300" />
+          </Animated.View>
+
+          <Animated.View entering={FadeInDown.duration(300).delay(350)} className="mb-8">
+            <Pressable
+              onPress={() => navigation.navigate("Register")}
+              className="py-4 items-center border-2 border-gray-300 bg-white"
+            >
+              <View className="flex-row items-center">
+                <MaterialIcons
+                  name="person-add"
+                  size={18}
+                  color={COLORS.primary}
+                />
+                <Text
+                  className="text-sm font-bold ml-2 uppercase tracking-wider"
+                  style={{
+                    fontFamily: "OpenSans_700Bold",
+                    color: COLORS.primary,
+                  }}
+                >
+                  {t("createAccount")}
+                </Text>
+              </View>
+            </Pressable>
+          </Animated.View>
+        </View>
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );
-};
-
-export default PasswordPage;
+}

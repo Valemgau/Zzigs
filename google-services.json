@@ -1,13 +1,46 @@
 {
-  "type": "service_account",
-  "project_id": "couture-469010",
-  "private_key_id": "f4c27841c4f1e30f1ab3de63ec960bf1cf68290a",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQD5lqUJ7Dx4P5/9\np+aMYWgX4Ofa57e8C6zGS7owWzcHd982sLHOAMju/MUqwyFbYFwts0jfn55BUeAo\n9DLjLtcsuEd0zCEqr+7OkjjreM0cai2Vkcmcw9GUuXsm0LWWezAdjfLPFuv6aNTp\nE0XHRzv+gEHIJdbj+7Mbi3FZIuclFHaoXACtQUYolNPNiyvyD2Cspb0H3BU9Nd0b\nrel8/0mjjfX5RbPMA9iPKxcWqbVHUX+cPVMlfHjdSpJPnG+GoBd8hjHRi+RQaYUJ\nb2or/hVEqMkQr7XTX3fGBbZR5Z8tC8UhZbH5Xcn8JfES2GCr0nhd2SqP/mmGmH1I\nuZIiLg/PAgMBAAECggEASeU/tNnkJ2gTCutIl5yJULSOgOHlJMBCJa2rEQEYoFXt\n2QfkhMz3sMZW6+u89wxnDkLMGyVrmgRPPWDbpiaqn3tp8Js1YKmZJ0DkqFbqR3Tq\nTSPOUOMrLIDkBOB7OvP7EW0DDCxJrqiWDPHfUXp2OUoo78TARFyzsT6OTylFzVSV\nhRHJhLA8h4ShXu+zn8jZsAXfwLH7eQ6jNsoGkeOm1IIfvm7lfgCNimX9VkiPpyXz\nHFeZcfFQXsxuMpiRpFo+IXtcbUKXlqw6uQQNOOCqB/QRf+FaxcTch/MUtfxeP1LU\nShJOuDfzlq9fcmTAoh5jgf1gtNf/Mj1HC4aG4UQf5QKBgQD9IVMRWTQpJqbp2KaF\nttOPbjZrtprIr3hCJiP5yH7OrptxtVo9h0yRWeVwgQWAVrqxy6MF4giu4xdJBSF0\nyFcZjBOYqH917PrA4J6wwysALLpv0u0fffzs0FDKUcah1v0JVwI0rfHpUEm5gkOT\n718Ze6Wpfco23vop21w6+hwWDQKBgQD8awp1IxfoyMlFOnR1KInvuPf3NHUI/UAo\ncMherTxmIqgkP7c+PKrUW/6dJBfLvRtQ5s37yVfT7HtSpRA7/iZW5mhSXnmx9JVV\nDBOGwQSZSm83eSH8xdaCepcTeXr6aUk7Zj37qw1cqXkDbwpuv1OZWihwWG4hRptm\nV7nwtIWCSwKBgEDzPA1HhkrI0CtQm+nTb5VuAijBQhYccA8JGlINT/xYcSpMDkub\nW9ov5t9nO7IijuTwC3SG+xNk0aS63ErK3Q6BEsYo9gucMvsqp41ThsUUtQHcbVuX\nSD67dP903DLKp0KuQLKjr17eawxekFh1I0G2qFtFG43YyPfUgWXgpzRBAoGBAKdT\nfdcwsETL9UBDA7g2a1nST+47g+m1l7Y3LVw1knhSOQvugNZs+QFVCm+44V1ZuqXi\nmmFykxoVBZs/eIeMbnXkvvr7Tci9zdBW9Qq7IQVM5nTrg7BApXZRNZzfRrqA2N7b\nY/NU7MKkRWgVT+EiS5S4w13WAQtl9tXdCZGa2XYJAoGBAKLXLEmpiNu7mQ48vRq0\nfKNOvMv9kRdVOL/IyOBLRoioNlyCifQrC2AsmT05JPFRhDxKV/qXjWm2xM7Hs4Vi\nIVxeKEes8QfpPNkcSSXyhjxgXbRCYus8Gujj7GxtaJFE9/jmzpiOBWMPQ1yn0u7T\nxmvg5pUZiwucXaMhrOhL8WUx\n-----END PRIVATE KEY-----\n",
-  "client_email": "for-firebase@couture-469010.iam.gserviceaccount.com",
-  "client_id": "114856822062968556262",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/for-firebase%40couture-469010.iam.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
+  "project_info": {
+    "project_number": "685321533762",
+    "project_id": "couture-d6c0c",
+    "storage_bucket": "couture-d6c0c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:685321533762:android:3e464ad27a95eddf90f0db",
+        "android_client_info": {
+          "package_name": "com.zzigs"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "685321533762-j92b15s6u7q2d56ej6mf95ompkm3pmlf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCLHNr3sRS6ylrCdQUKhFy8h_jM-o_-UBM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "685321533762-j92b15s6reu7q2d56ej6mf95ompkm3pmlf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "685321533762-uvsnbrpe5j12hnffruo7lo5ugggukl7q.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.couture"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
 }

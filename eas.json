@@ -1,32 +1,38 @@
 {
   "cli": {
+    "appVersionSource": "remote",
     "version": ">= 0.55.1",
     "promptToConfigurePushNotifications": false
   },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "node": "20.19.4"
     },
     "preview": {
-      "developmentClient": true
+      "developmentClient": true,
+      "node": "20.19.4"
     },
-
     "preview2": {
       "android": {
         "gradleCommand": ":app:assembleRelease"
-      }
+      },
+      "node": "20.19.4"
     },
     "preview3": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "node": "20.19.4"
       }
     },
     "preview4": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "node": "20.19.4"
     },
     "production": {
       "channel": "production",
+      "node": "20.19.4",
       "ios": {
         "image": "macos-sequoia-15.3-xcode-16.2"
       }

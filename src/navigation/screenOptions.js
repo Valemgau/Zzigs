@@ -1,36 +1,45 @@
 import { TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
+import { COLORS } from "../styles/colors";
 
-export const getScreenOptions = ({ isDarkMode = false, icon = "arrow-back" } = {}) => {
+export const getScreenOptions = ({
+  isDarkMode = false,
+  icon = "arrow-back",
+} = {}) => {
   return ({ navigation, route }) => {
-    // Check si la page actuelle est ReferralPage
-    const isReferralPage = route.name === "ReferralPage";
-
-    const handlePress = () => {
-      if (isReferralPage) {
-        navigation.goBack();
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "Activités", params: { screen: "Home" } }],
-        });
-      } else {
-        navigation.goBack();
-      }
-    };
-
     return {
       headerBackTitle: "Retour",
       headerStyle: {
-        backgroundColor: isDarkMode ? "#16181C" : "white",
+        backgroundColor: "#fff",
+        elevation: 0,
+        shadowOpacity: 0,
+        borderBottomWidth: 1,
+        borderBottomColor: "#E5E7EB",
       },
-      headerTintColor: isDarkMode ? "white" : "black",
+      headerTintColor: COLORS.primary,
       headerTitleStyle: {
-        fontSize: 15,
-        fontFamily: "Inter_500Medium",
+        fontSize: 17,
+        fontFamily: "OpenSans_600SemiBold",
+        color: "#111827",
       },
       headerLeft: () => (
-        <TouchableOpacity onPress={handlePress}>
-          <Ionicons name={icon} size={24} color={isDarkMode ? "white" : "black"} />
+        <TouchableOpacity
+          className="ml-4 mb-2 w-10 h-10 rounded-full items-center justify-center"
+          style={{ backgroundColor: COLORS.primary + "15" }}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.replace("Home");
+            }
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <MaterialIcons
+            name={icon}
+            size={22}
+            color={COLORS.primary}
+          />
         </TouchableOpacity>
       ),
     };

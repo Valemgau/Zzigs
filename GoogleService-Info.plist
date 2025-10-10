@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>685321533762-uvsnbrpe5j12hnffruo7lo5ugggukl7q.apps.googleusercontent.com</string>
+	<string>685321533762-khan6d6u5t0cs05vdmf39k4hbe1deepl.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.685321533762-uvsnbrpe5j12hnffruo7lo5ugggukl7q</string>
+	<string>com.googleusercontent.apps.685321533762-khan6d6u5t0cs05vdmf39k4hbe1deepl</string>
 	<key>API_KEY</key>
 	<string>AIzaSyCc4GGSy_VcLYAIJDffJKRzPn712xMvnVM</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.couture</string>
+	<string>com.zzigs</string>
 	<key>PROJECT_ID</key>
 	<string>couture-d6c0c</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:685321533762:ios:7f407102c301d66e90f0db</string>
+	<string>1:685321533762:ios:b8a6ecc0a732d9df90f0db</string>
 </dict>
 </plist>
