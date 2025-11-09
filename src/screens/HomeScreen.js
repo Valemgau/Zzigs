@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   ScrollView,
   Dimensions,
+  Platform,
 } from "react-native";
 import React, {
   useLayoutEffect,
@@ -35,6 +36,8 @@ import {
   getCountFromServer,
   setDoc,
   updateDoc,
+  limit,
+  startAfter,
 } from "firebase/firestore";
 import { COLORS } from "../styles/colors";
 import postalCodes from "../utils/postalcode.json";
@@ -48,14 +51,15 @@ import Animated, {
   interpolate,
 } from "react-native-reanimated";
 import * as Notifications from "expo-notifications";
-import * as TrackingTransparency from "expo-tracking-transparency";
 import { Image } from "expo-image";
 import Loader from "../components/Loader";
 import { showMessage } from "react-native-flash-message";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "react-i18next";
+import { useTrackingPermissions } from "expo-tracking-transparency";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const PROJECTS_PER_PAGE = 10;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -70,8 +74,12 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [isClient, setIsClient] = useState(undefined);
   const [projects, setProjects] = useState([]);
+  const [allProjects, setAllProjects] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [lastVisible, setLastVisible] = useState(null);
   const [filterPostal, setFilterPostal] = useState(null);
   const [postalModalVisible, setPostalModalVisible] = useState(false);
   const [notificationModalVisible, setNotificationModalVisible] =
@@ -79,9 +87,18 @@ export default function HomeScreen() {
   const [postalSortedProjects, setPostalSortedProjects] = useState([]);
   const [search, setSearch] = useState("");
   const [pendingCount, setPendingCount] = useState(0);
+  const [status, requestPermission] = useTrackingPermissions();
 
   const scrollY = useSharedValue(0);
   const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    if (Platform.OS === "ios" && !status) {
+      setTimeout(() => {
+        requestPermission();
+      }, 1000);
+    }
+  }, [status]);
 
   const checkNotificationPrompt = useCallback(async () => {
     try {
@@ -110,7 +127,6 @@ export default function HomeScreen() {
 
       const tokenData = await Notifications.getExpoPushTokenAsync();
       const token = tokenData.data;
-
       const uid = auth.currentUser?.uid;
       if (!uid) return false;
 
@@ -126,16 +142,6 @@ export default function HomeScreen() {
       );
 
       console.log("Token Expo enregistré");
-
-      if (TrackingTransparency?.requestPermissionsAsync) {
-        try {
-          const trackingPermission =
-            await TrackingTransparency.requestPermissionsAsync();
-          console.log("Tracking permission:", trackingPermission.status);
-        } catch (trackingError) {
-          console.log("Tracking transparency non disponible:", trackingError);
-        }
-      }
 
       return true;
     } catch (error) {
@@ -155,12 +161,6 @@ export default function HomeScreen() {
         message: t("notificationsEnabled"),
         description: t("notificationsEnabledDesc"),
         type: "success",
-      });
-    } else {
-      showMessage({
-        message: t("permissionDenied"),
-        description: t("notificationsSettingsDesc"),
-        type: "warning",
       });
     }
   };
@@ -253,7 +253,7 @@ export default function HomeScreen() {
               return;
             }
             if (!data.address) {
-              navigation.navigate("EditProfile", { from: "checkUser" });
+              navigation.navigate("EditLocation", { from: "checkUser" });
               showMessage({
                 message: t("missingAddress"),
                 description: t("missingAddressDesc"),
@@ -279,15 +279,15 @@ export default function HomeScreen() {
               });
               return;
             }
-            if (!data.iban || !data.bankName || !data.bankAccountNumber) {
-              navigation.navigate("EditBankInfo", { from: "checkUser" });
-              showMessage({
-                message: t("incompleteBankInfo"),
-                description: t("incompleteBankInfoDesc"),
-                type: "info",
-              });
-              return;
-            }
+            // if (!data.iban || !data.bankName || !data.bankAccountNumber) {
+            //   navigation.navigate("EditBankInfo", { from: "checkUser" });
+            //   showMessage({
+            //     message: t("incompleteBankInfo"),
+            //     description: t("incompleteBankInfoDesc"),
+            //     type: "info",
+            //   });
+            //   return;
+            // }
           } else {
             if (!data.firstname || !data.lastname) {
               navigation.navigate("EditProfile", { from: "checkUser" });
@@ -303,6 +303,15 @@ export default function HomeScreen() {
               showMessage({
                 message: t("missingAddress"),
                 description: t("missingAddressDesc"),
+                type: "info",
+              });
+              return;
+            }
+            if (!data.phoneNumber) {
+              navigation.navigate("EditPhoneNumber", { from: "checkUser" });
+              showMessage({
+                message: t("missingPhoneNumber"),
+                description: t("missingPhoneNumberDesc"),
                 type: "info",
               });
               return;
@@ -352,8 +361,13 @@ export default function HomeScreen() {
     }));
   }, []);
 
+  // Chargement initial avec limite
   useEffect(() => {
-    const q = query(collection(db, "projects"), orderBy("createdAt", "desc"));
+    const q = query(
+      collection(db, "projects"),
+      orderBy("createdAt", "desc"),
+      limit(PROJECTS_PER_PAGE)
+    );
 
     const unsubscribe = onSnapshot(
       q,
@@ -366,6 +380,15 @@ export default function HomeScreen() {
 
           projs = await enrichProjectsWithUser(projs);
           setProjects(projs);
+          setAllProjects(projs);
+
+          // Garder le dernier document pour la pagination
+          if (snapshot.docs.length > 0) {
+            setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+            setHasMore(snapshot.docs.length === PROJECTS_PER_PAGE);
+          } else {
+            setHasMore(false);
+          }
 
           setTimeout(() => setLoading(false), 300);
         } catch (error) {
@@ -382,6 +405,45 @@ export default function HomeScreen() {
 
     return () => unsubscribe();
   }, [enrichProjectsWithUser]);
+
+  // Fonction pour charger plus de projets
+  const loadMoreProjects = async () => {
+    if (!hasMore || loadingMore || !lastVisible) return;
+
+    setLoadingMore(true);
+
+    try {
+      const q = query(
+        collection(db, "projects"),
+        orderBy("createdAt", "desc"),
+        startAfter(lastVisible),
+        limit(PROJECTS_PER_PAGE)
+      );
+
+      const snapshot = await getDocs(q);
+
+      if (snapshot.docs.length > 0) {
+        let newProjects = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        newProjects = await enrichProjectsWithUser(newProjects);
+
+        setProjects((prev) => [...prev, ...newProjects]);
+        setAllProjects((prev) => [...prev, ...newProjects]);
+        setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+        setHasMore(snapshot.docs.length === PROJECTS_PER_PAGE);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Erreur chargement plus de projets:", error);
+      Alert.alert("Erreur", "Impossible de charger plus de projets");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (!filterPostal) {
@@ -479,7 +541,7 @@ export default function HomeScreen() {
     }).current;
 
     return (
-      <View style={{ height: 200 }}>
+      <View style={{ height: 140 }}>
         <FlatList
           ref={flatListRef}
           data={images}
@@ -490,11 +552,11 @@ export default function HomeScreen() {
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
           renderItem={({ item }) => (
-            <View style={{ width: SCREEN_WIDTH - 40, height: 200 }}>
+            <View style={{ width: SCREEN_WIDTH - 40, height: 140 }}>
               <Image
                 source={typeof item === "string" ? { uri: item } : item}
                 style={{ width: "100%", height: "100%" }}
-                contentFit="contain"
+                contentFit="cover"
               />
             </View>
           )}
@@ -503,10 +565,10 @@ export default function HomeScreen() {
 
         {images.length > 1 && (
           <View
-            className="absolute bottom-3 right-3 px-2.5 py-1.5 flex-row items-center"
-            style={{ backgroundColor: "rgba(0,0,0,0.6)", borderRadius: 12 }}
+            className="absolute bottom-2 right-2 px-2 py-1 flex-row items-center"
+            style={{ backgroundColor: "rgba(0,0,0,0.7)", borderRadius: 10 }}
           >
-            <MaterialIcons name="photo-library" size={14} color="#fff" />
+            <MaterialIcons name="photo-library" size={12} color="#fff" />
             <Text
               className="text-white text-xs ml-1"
               style={{ fontFamily: "OpenSans_600SemiBold" }}
@@ -518,20 +580,20 @@ export default function HomeScreen() {
 
         {images.length > 1 && (
           <View
-            className="absolute bottom-3 left-0 right-0 flex-row justify-center items-center"
-            style={{ gap: 6 }}
+            className="absolute bottom-2 left-0 right-0 flex-row justify-center items-center"
+            style={{ gap: 4 }}
           >
             {images.map((_, index) => (
               <View
                 key={index}
                 style={{
-                  width: currentIndex === index ? 20 : 6,
-                  height: 6,
-                  borderRadius: 3,
+                  width: currentIndex === index ? 16 : 4,
+                  height: 4,
+                  borderRadius: 2,
                   backgroundColor:
                     currentIndex === index
                       ? COLORS.primary
-                      : "rgba(255,255,255,0.5)",
+                      : "rgba(255,255,255,0.6)",
                 }}
               />
             ))}
@@ -544,7 +606,15 @@ export default function HomeScreen() {
   const renderProjectItem = useCallback(
     ({ item }) => (
       <Pressable
-        className="bg-white border border-gray-200 mb-4 overflow-hidden"
+        className="bg-white mx-5 mb-3 overflow-hidden"
+        style={{
+          borderRadius: 16,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 8,
+          elevation: 3,
+        }}
         onPress={() =>
           navigation.navigate("ProjectDetailsScreen", { projectId: item.id })
         }
@@ -554,12 +624,20 @@ export default function HomeScreen() {
 
           {item.budget && (
             <View
-              className="absolute top-3 right-3 px-3 py-1.5 flex-row items-center"
-              style={{ backgroundColor: COLORS.primary, borderRadius: 6 }}
+              className="absolute top-2 right-2 px-2.5 py-1 flex-row items-center"
+              style={{
+                backgroundColor: COLORS.primary,
+                borderRadius: 8,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+                elevation: 5,
+              }}
             >
-              <MaterialIcons name="attach-money" size={16} color="#fff" />
+              <MaterialIcons name="attach-money" size={14} color="#fff" />
               <Text
-                className="text-white text-sm ml-1"
+                className="text-white text-xs ml-0.5"
                 style={{ fontFamily: "OpenSans_700Bold" }}
               >
                 {item.budget} €
@@ -568,9 +646,9 @@ export default function HomeScreen() {
           )}
         </Animated.View>
 
-        <View className="p-4">
+        <View className="p-3">
           <Text
-            className="text-lg text-gray-900 mb-2 capitalize"
+            className="text-base text-gray-900 mb-1 capitalize"
             style={{ fontFamily: "OpenSans_700Bold" }}
             numberOfLines={1}
           >
@@ -579,18 +657,18 @@ export default function HomeScreen() {
 
           <Text
             numberOfLines={2}
-            className="text-sm text-gray-600 mb-4"
+            className="text-xs text-gray-600 mb-3 leading-4"
             style={{ fontFamily: "OpenSans_400Regular" }}
           >
             {item.project}
           </Text>
 
-          <View className="flex-row items-center justify-between pt-3 border-t border-gray-100">
+          <View className="flex-row items-center justify-between pt-2 border-t border-gray-100">
             <View className="flex-row items-center flex-1">
               {item.userPhoto ? (
                 <Animated.View
                   entering={FadeIn.duration(700)}
-                  className="w-10 h-10 rounded-full mr-3 bg-gray-200"
+                  className="w-8 h-8 rounded-full mr-2 bg-gray-200"
                 >
                   <Image
                     source={{ uri: item.userPhoto }}
@@ -604,11 +682,11 @@ export default function HomeScreen() {
               ) : (
                 <Animated.View
                   entering={FadeIn.duration(400)}
-                  className="w-10 h-10 rounded-full mr-3 items-center justify-center"
+                  className="w-8 h-8 rounded-full mr-2 items-center justify-center"
                   style={{ backgroundColor: COLORS.primary }}
                 >
                   <Text
-                    className="text-white text-base"
+                    className="text-white text-xs"
                     style={{ fontFamily: "OpenSans_700Bold" }}
                   >
                     {item.username?.charAt(0)?.toUpperCase() || "U"}
@@ -617,16 +695,16 @@ export default function HomeScreen() {
               )}
               <View className="flex-1">
                 <Text
-                  className="text-sm text-gray-900 mb-0.5"
+                  className="text-xs text-gray-900"
                   style={{ fontFamily: "OpenSans_600SemiBold" }}
                   numberOfLines={1}
                 >
                   {item.username || t("user")}
                 </Text>
-                <View className="flex-row items-center">
-                  <MaterialIcons name="location-on" size={14} color="#9CA3AF" />
+                <View className="flex-row items-center mt-0.5">
+                  <MaterialIcons name="location-on" size={11} color="#9CA3AF" />
                   <Text
-                    className="text-xs text-gray-500 ml-1"
+                    className="text-[10px] text-gray-500 ml-0.5"
                     style={{ fontFamily: "OpenSans_400Regular" }}
                     numberOfLines={1}
                   >
@@ -639,12 +717,12 @@ export default function HomeScreen() {
             </View>
 
             <View
-              className="w-8 h-8 rounded-full items-center justify-center ml-2"
-              style={{ backgroundColor: COLORS.primary + "15" }}
+              className="w-7 h-7 rounded-full items-center justify-center ml-2"
+              style={{ backgroundColor: COLORS.primary + "20" }}
             >
               <MaterialIcons
                 name="arrow-forward"
-                size={16}
+                size={14}
                 color={COLORS.primary}
               />
             </View>
@@ -654,6 +732,44 @@ export default function HomeScreen() {
     ),
     [navigation, ImageCarousel, t]
   );
+
+  const renderFooter = () => {
+    if (!hasMore) return null;
+
+    return (
+      <View className="py-4 items-center">
+        {loadingMore ? (
+          <ActivityIndicator size="small" color={COLORS.primary} />
+        ) : (
+          <Pressable
+            onPress={loadMoreProjects}
+            className="px-6 py-3 flex-row items-center"
+            style={{
+              backgroundColor: COLORS.primary + "15",
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: COLORS.primary + "30",
+            }}
+          >
+            <Text
+              className="text-sm mr-2"
+              style={{
+                fontFamily: "OpenSans_600SemiBold",
+                color: COLORS.primary,
+              }}
+            >
+              {t("loadMore") || "Voir plus"}
+            </Text>
+            <MaterialIcons
+              name="expand-more"
+              size={18}
+              color={COLORS.primary}
+            />
+          </Pressable>
+        )}
+      </View>
+    );
+  };
 
   if (loading) {
     return <Loader />;
@@ -689,6 +805,56 @@ export default function HomeScreen() {
             </Pressable>
           )}
         </View>
+        {auth.currentUser && isClient && (
+          <Animated.View
+            style={[
+              {
+                position: "absolute",
+                bottom: 24,
+                right: 20,
+                height: 56,
+                backgroundColor: COLORS.primary,
+                borderRadius: 28,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 8,
+              },
+              fabAnimatedStyle,
+            ]}
+          >
+            <Pressable
+              onPress={() => navigation.navigate("AddProject")}
+              className="flex-row items-center justify-center"
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.9 : 1,
+                height: "100%",
+                width: "100%",
+                paddingHorizontal: 16,
+              })}
+            >
+              <Animated.Text
+                style={[
+                  {
+                    color: "#fff",
+                    fontSize: 15,
+                    fontFamily: "OpenSans_700Bold",
+                  },
+                  textAnimatedStyle,
+                ]}
+              >
+                {t("newProject")}
+              </Animated.Text>
+              <Animated.View style={iconAnimatedStyle}>
+                <MaterialIcons name="add" size={24} color="#fff" />
+              </Animated.View>
+            </Pressable>
+          </Animated.View>
+        )}
       </SafeAreaView>
     );
   }
@@ -696,59 +862,16 @@ export default function HomeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <View className="flex-1">
-        <View className="px-5 py-4 bg-white border-b border-gray-200">
+        <View className="px-5 py-2">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             className="flex-row"
             contentContainerStyle={{ alignItems: "center" }}
           >
-            {auth.currentUser && (
-              <Pressable
-                onPress={() => {
-                  navigation.navigate(
-                    isClient ? "ReceivedOffersScreen" : "OffersListScreen"
-                  );
-                }}
-                className="mr-3 px-4 py-2 flex-row items-center border border-gray-300"
-                style={{
-                  backgroundColor:
-                    pendingCount > 0 ? COLORS.primary + "15" : "#fff",
-                }}
-              >
-                <MaterialIcons
-                  name="mail-outline"
-                  size={18}
-                  color={pendingCount > 0 ? COLORS.primary : "#6B7280"}
-                />
-                <Text
-                  className="text-sm ml-2"
-                  style={{
-                    fontFamily: "OpenSans_600SemiBold",
-                    color: pendingCount > 0 ? COLORS.primary : "#6B7280",
-                  }}
-                >
-                  {isClient ? t("receivedOffers") : t("myOffers")}
-                </Text>
-                {pendingCount > 0 && (
-                  <View
-                    className="ml-2 rounded-full px-2 py-0.5 min-w-[20px] items-center"
-                    style={{ backgroundColor: COLORS.primary }}
-                  >
-                    <Text
-                      className="text-white text-xs"
-                      style={{ fontFamily: "OpenSans_700Bold" }}
-                    >
-                      {pendingCount}
-                    </Text>
-                  </View>
-                )}
-              </Pressable>
-            )}
-
             <Pressable
               onPress={() => setPostalModalVisible(true)}
-              className="px-4 py-2 flex-row items-center border"
+              className="px-4 py-1 flex-row items-center border rounded-full"
               style={{
                 backgroundColor: filterPostal
                   ? COLORS.secondary + "15"
@@ -794,9 +917,10 @@ export default function HomeScreen() {
           keyExtractor={(item) => item.id}
           renderItem={renderProjectItem}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+          contentContainerStyle={{ paddingTop: 8, paddingBottom: 100 }}
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          ListFooterComponent={!filterPostal ? renderFooter : null}
         />
 
         {auth.currentUser && isClient && (

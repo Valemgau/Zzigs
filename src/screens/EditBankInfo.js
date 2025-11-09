@@ -141,7 +141,6 @@ export default function EditBankInfo({ route }) {
         type: "success",
         icon: "success",
       });
-
     } catch (error) {
       console.error("Erreur sauvegarde:", error);
       showMessage({
@@ -190,7 +189,9 @@ export default function EditBankInfo({ route }) {
               </Text>
             </Animated.View>
 
-            {(currentData.iban || currentData.bankName || currentData.bankAccountNumber) && (
+            {(currentData.iban ||
+              currentData.bankName ||
+              currentData.bankAccountNumber) && (
               <Animated.View
                 entering={FadeInDown.duration(300).delay(50)}
                 className="mb-6"
@@ -204,7 +205,11 @@ export default function EditBankInfo({ route }) {
                   </Text>
                   {currentData.iban && (
                     <View className="flex-row items-center mb-2">
-                      <MaterialIcons name="account-balance" size={16} color="#6B7280" />
+                      <MaterialIcons
+                        name="account-balance"
+                        size={16}
+                        color="#6B7280"
+                      />
                       <Text
                         className="text-sm text-gray-900 ml-2"
                         style={{ fontFamily: "OpenSans_400Regular" }}
@@ -215,7 +220,11 @@ export default function EditBankInfo({ route }) {
                   )}
                   {currentData.bankName && (
                     <View className="flex-row items-center mb-2">
-                      <MaterialIcons name="business" size={16} color="#6B7280" />
+                      <MaterialIcons
+                        name="business"
+                        size={16}
+                        color="#6B7280"
+                      />
                       <Text
                         className="text-sm text-gray-900 ml-2"
                         style={{ fontFamily: "OpenSans_400Regular" }}
@@ -226,7 +235,11 @@ export default function EditBankInfo({ route }) {
                   )}
                   {currentData.bankAccountNumber && (
                     <View className="flex-row items-center">
-                      <MaterialIcons name="confirmation-number" size={16} color="#6B7280" />
+                      <MaterialIcons
+                        name="confirmation-number"
+                        size={16}
+                        color="#6B7280"
+                      />
                       <Text
                         className="text-sm text-gray-900 ml-2"
                         style={{ fontFamily: "OpenSans_400Regular" }}
@@ -326,7 +339,9 @@ export default function EditBankInfo({ route }) {
               <View className="bg-white border border-gray-200 px-4 py-3">
                 <TextInput
                   value={fields.bankAccountNumber}
-                  onChangeText={(v) => handleFieldChange("bankAccountNumber", v)}
+                  onChangeText={(v) =>
+                    handleFieldChange("bankAccountNumber", v)
+                  }
                   placeholder={t("accountNumberPlaceholder")}
                   placeholderTextColor="#9CA3AF"
                   className="text-sm text-gray-900"
@@ -362,43 +377,33 @@ export default function EditBankInfo({ route }) {
                 </Text>
               </Animated.View>
             )}
+
+            <View className="mt-10">
+              <Pressable
+                disabled={saving}
+                onPress={handleSave}
+                className="py-4 items-center flex-row justify-center"
+                style={{
+                  backgroundColor: saving ? "#D1D5DB" : COLORS.primary,
+                }}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <MaterialIcons name="check" size={18} color="#fff" />
+                    <Text
+                      className="text-sm font-bold text-white ml-2 uppercase tracking-wider"
+                      style={{ fontFamily: "OpenSans_700Bold" }}
+                    >
+                      {newProfile ? t("continue") : t("save")}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            </View>
           </View>
         </ScrollView>
-
-        <View
-          className="absolute bottom-0 left-0 right-0 px-5 py-4"
-          style={{
-            backgroundColor: "#fff",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 12,
-            elevation: 10,
-          }}
-        >
-          <Pressable
-            disabled={saving}
-            onPress={handleSave}
-            className="py-4 items-center flex-row justify-center"
-            style={{
-              backgroundColor: saving ? "#D1D5DB" : COLORS.primary,
-            }}
-          >
-            {saving ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <MaterialIcons name="check" size={18} color="#fff" />
-                <Text
-                  className="text-sm font-bold text-white ml-2 uppercase tracking-wider"
-                  style={{ fontFamily: "OpenSans_700Bold" }}
-                >
-                  {newProfile ? t("continue") : t("save")}
-                </Text>
-              </>
-            )}
-          </Pressable>
-        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

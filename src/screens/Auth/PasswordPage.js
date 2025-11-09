@@ -148,8 +148,8 @@ export default function PasswordPage() {
       >
         <View className="flex-1 px-6 pt-12">
           {/* Logo centré */}
-          <Animated.View 
-            entering={FadeInDown.duration(300)} 
+          <Animated.View
+            entering={FadeInDown.duration(300)}
             className="items-center mb-6"
           >
             <View className="w-16 h-16 rounded overflow-hidden bg-white shadow-lg">
@@ -161,7 +161,10 @@ export default function PasswordPage() {
             </View>
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.duration(300).delay(50)} className="mb-10 items-center">
+          <Animated.View
+            entering={FadeInDown.duration(300).delay(50)}
+            className="mb-10 items-center"
+          >
             <Text
               className="text-2xl font-bold text-gray-900 mb-2 text-center"
               style={{ fontFamily: "OpenSans_700Bold" }}
@@ -314,7 +317,10 @@ export default function PasswordPage() {
             <View className="flex-1 h-px bg-gray-300" />
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.duration(300).delay(350)} className="mb-8">
+          <Animated.View
+            entering={FadeInDown.duration(300).delay(350)}
+            className="mb-8"
+          >
             <Pressable
               onPress={() => navigation.navigate("Register")}
               className="py-4 items-center border-2 border-gray-300 bg-white"

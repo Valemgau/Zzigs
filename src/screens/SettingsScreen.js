@@ -37,8 +37,10 @@ import Loader from "../components/Loader";
 import { showMessage } from "react-native-flash-message";
 import { useTranslation } from "react-i18next";
 
+
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 const AnimatedImageBackground = Animated.createAnimatedComponent(ImageBackground);
+
 
 export default function SettingsScreen({ navigation, route }) {
   const userData = route?.params;
@@ -50,108 +52,120 @@ export default function SettingsScreen({ navigation, route }) {
   const [subscriptionActive, setSubscriptionActive] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState("");
 
+
   const scrollY = useSharedValue(0);
   const IMAGE_HEIGHT = 140;
 
-  const MENU_SECTIONS = [
-    {
-      title: t("account"),
-      data: [
-        {
-          key: "EditProfile",
-          label: t("personalInformation"),
-          onPress: () => navigation.navigate("EditProfile"),
-          icon: "person-outline",
-        },
-        {
-          key: "EditPhoneNumber",
-          label: t("phoneNumber"),
-          onPress: () => navigation.navigate("EditPhoneNumber"),
-          icon: "phone",
-        },
-        {
-          key: "EditLocation",
-          label: t("manageLocation"),
-          onPress: () => navigation.navigate("EditLocation"),
-          icon: "location-on",
-        },
-        {
-          key: "EditBankInfo",
-          label: t("bankDetails"),
-          onPress: () => navigation.navigate("EditBankInfo"),
-          icon: "account-balance",
-        },
-      ],
-    },
-    {
-      title: t("preferences"),
-      data: [
-        {
-          key: "EditLanguage",
-          label: t("changeLanguage"),
-          onPress: () => navigation.navigate("EditLanguage"),
-          icon: "language",
-        },
-      ],
-    },
-    {
-      title: t("support"),
-      data: [
-        {
-          key: "ContactUs",
-          label: t("contactUs"),
-          onPress: () => navigation.navigate("ContactUs"),
-          icon: "chat-bubble-outline",
-        },
-      ],
-    },
-    {
-      title: t("danger"),
-      data: [
-        {
-          key: "logout",
-          label: t("logout"),
-          onPress: () =>
-            Alert.alert(
-              t("confirmLogout"),
-              t("confirmLogoutDesc"),
-              [
-                { text: t("cancel"), style: "cancel" },
-                {
-                  text: t("logout"),
-                  style: "destructive",
-                  onPress: async () => {
-                    try {
-                      await signOut(auth);
-                    } catch {
-                      Alert.alert(
-                        t("error"),
-                        t("logoutError")
-                      );
-                    }
+
+  const getMenuSections = () => {
+    const sections = [
+      {
+        title: t("account"),
+        data: [
+          {
+            key: "EditProfile",
+            label: t("personalInformation"),
+            onPress: () => navigation.navigate("EditProfile"),
+            icon: "person-outline",
+          },
+          {
+            key: "EditPhoneNumber",
+            label: t("phoneNumber"),
+            onPress: () => navigation.navigate("EditPhoneNumber"),
+            icon: "phone",
+          },
+          {
+            key: "EditLocation",
+            label: t("manageLocation"),
+            onPress: () => navigation.navigate("EditLocation"),
+            icon: "location-on",
+          },
+        ],
+      },
+      {
+        title: t("preferences"),
+        data: [
+          {
+            key: "EditLanguage",
+            label: t("changeLanguage"),
+            onPress: () => navigation.navigate("EditLanguage"),
+            icon: "language",
+          },
+        ],
+      },
+      {
+        title: t("support"),
+        data: [
+          {
+            key: "ContactUs",
+            label: t("contactUs"),
+            onPress: () => navigation.navigate("ContactUs"),
+            icon: "chat-bubble-outline",
+          },
+        ],
+      },
+      {
+        title: t("danger"),
+        data: [
+          {
+            key: "logout",
+            label: t("logout"),
+            onPress: () =>
+              Alert.alert(
+                t("confirmLogout"),
+                t("confirmLogoutDesc"),
+                [
+                  { text: t("cancel"), style: "cancel" },
+                  {
+                    text: t("logout"),
+                    style: "destructive",
+                    onPress: async () => {
+                      try {
+                        await signOut(auth);
+                      } catch {
+                        Alert.alert(
+                          t("error"),
+                          t("logoutError")
+                        );
+                      }
+                    },
                   },
-                },
-              ]
-            ),
-          icon: "logout",
-          danger: true,
-        },
-        {
-          key: "deleteAccount",
-          label: t("deleteAccount"),
-          onPress: () => navigation.navigate("DeleteAccountScreen"),
-          icon: "delete",
-          danger: true,
-        },
-      ],
-    },
-  ];
+                ]
+              ),
+            icon: "logout",
+            danger: true,
+          },
+          {
+            key: "deleteAccount",
+            label: t("deleteAccount"),
+            onPress: () => navigation.navigate("DeleteAccountScreen"),
+            icon: "delete",
+            danger: true,
+          },
+        ],
+      },
+    ];
+
+    // Ajouter EditBankInfo uniquement si ce n'est pas un client
+    if (userProfile && !userProfile.isClient) {
+      sections[0].data.splice(3, 0, {
+        key: "EditBankInfo",
+        label: t("bankDetails"),
+        onPress: () => navigation.navigate("EditBankInfo"),
+        icon: "account-balance",
+      });
+    }
+
+    return sections;
+  };
+
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
     },
   });
+
 
   const imageAnimatedStyle = useAnimatedStyle(() => {
     const scale = interpolate(
@@ -161,6 +175,7 @@ export default function SettingsScreen({ navigation, route }) {
       Extrapolate.CLAMP
     );
 
+
     const translateY = interpolate(
       scrollY.value,
       [-IMAGE_HEIGHT, 0],
@@ -168,26 +183,32 @@ export default function SettingsScreen({ navigation, route }) {
       Extrapolate.CLAMP
     );
 
+
     return {
       transform: [{ scale }, { translateY }],
     };
   });
 
+
   useEffect(() => {
     const fetchProfileAndCheckSubscription = async () => {
       if (!auth.currentUser) return;
 
+
       try {
         const docRef = doc(db, "users", auth.currentUser.uid);
         const docSnap = await getDoc(docRef);
+
 
         if (docSnap.exists()) {
           const profileData = docSnap.data();
           setUserProfile(profileData);
           if (profileData.photo) setPhoto(profileData.photo);
 
+
           const isAccountActive = profileData.isActive ?? false;
           const isEmailVerified = profileData.emailIsVerified ?? false;
+
 
           if (isAccountActive && isEmailVerified) {
             setVerificationStatus(t("accountActiveEmailVerified"));
@@ -206,8 +227,10 @@ export default function SettingsScreen({ navigation, route }) {
       }
     };
 
+
     fetchProfileAndCheckSubscription();
   }, [t]);
+
 
   async function handleDeleteAccount() {
     try {
@@ -245,6 +268,7 @@ export default function SettingsScreen({ navigation, route }) {
     }
   }
 
+
   const pickImage = async () => {
     setPhotoLoading(true);
     try {
@@ -254,6 +278,7 @@ export default function SettingsScreen({ navigation, route }) {
         aspect: [1, 1],
         quality: 0.5,
       });
+
 
       const asset = result.assets?.[0] || result.selectedAssets;
       if (asset?.uri && auth.currentUser) {
@@ -296,9 +321,11 @@ export default function SettingsScreen({ navigation, route }) {
     }
   };
 
+
   if (loading) {
     return <Loader />;
   }
+
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -331,6 +358,7 @@ export default function SettingsScreen({ navigation, route }) {
                 backgroundColor: "rgba(0, 0, 0, 0.5)",
               }}
             />
+
 
             <View className="flex-1 justify-end pb-4 px-5">
               <View className="flex-row items-end">
@@ -383,6 +411,7 @@ export default function SettingsScreen({ navigation, route }) {
                   </View>
                 </TouchableOpacity>
 
+
                 {userProfile && (
                   <Animated.View
                     entering={FadeInDown.duration(300).delay(100)}
@@ -433,6 +462,7 @@ export default function SettingsScreen({ navigation, route }) {
           </AnimatedImageBackground>
         </View>
 
+
         {verificationStatus && (
           <Animated.View
             entering={FadeInDown.duration(300).delay(150)}
@@ -454,7 +484,7 @@ export default function SettingsScreen({ navigation, route }) {
                 className="text-xs text-gray-500 uppercase tracking-wider"
                 style={{ fontFamily: "OpenSans_600SemiBold" }}
               >
-                {t("status")}
+                {t("status.status")}
               </Text>
               <Text
                 className="text-sm text-gray-900"
@@ -466,8 +496,9 @@ export default function SettingsScreen({ navigation, route }) {
           </Animated.View>
         )}
 
+
         <View className="px-5 pb-8">
-          {MENU_SECTIONS.map((section, sectionIndex) => (
+          {getMenuSections().map((section, sectionIndex) => (
             <Animated.View
               key={section.title}
               entering={FadeInDown.duration(300).delay(200 + sectionIndex * 50)}
@@ -525,6 +556,7 @@ export default function SettingsScreen({ navigation, route }) {
             </Animated.View>
           ))}
         </View>
+
 
         <Animated.View
           entering={FadeInDown.duration(300).delay(500)}

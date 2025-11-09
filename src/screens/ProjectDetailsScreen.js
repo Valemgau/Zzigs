@@ -183,7 +183,7 @@ export default function ProjectDetailsScreen() {
             onPress={() =>
               navigation.navigate("ReportProjectScreen", { projectId })
             }
-            className="px-2 py-1 mx-4 flex-row items-center justify-center"
+            className="px-2 py-1 mx-4 flex-row items-center justify-center rounded-full"
             style={{ backgroundColor: COLORS.primary }}
           >
             <MaterialIcons name="flag" size={20} color="#fff" />
@@ -309,7 +309,7 @@ export default function ProjectDetailsScreen() {
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 200 }}
       >
         <Pressable
           onPress={() => {
@@ -601,7 +601,7 @@ export default function ProjectDetailsScreen() {
           </View>
         ) : hasOffer ? (
           <Pressable
-            onPress={() => navigation.navigate("OffersListScreen")}
+            onPress={() => navigation.navigate("ChatListScreen")}
             className="py-4 items-center"
             style={{ backgroundColor: COLORS.secondary }}
           >

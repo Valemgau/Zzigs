@@ -168,9 +168,21 @@ export default function EditProfile({ navigation, route }) {
   }
 
   const inputFields = [
-    { key: "username", label: t("usernameLabel"), placeholder: t("usernamePlaceholder") },
-    { key: "firstname", label: t("firstnameLabel"), placeholder: t("firstnamePlaceholder") },
-    { key: "lastname", label: t("lastnameLabel"), placeholder: t("lastnamePlaceholder") },
+    {
+      key: "username",
+      label: t("usernameLabel"),
+      placeholder: t("usernamePlaceholder"),
+    },
+    {
+      key: "firstname",
+      label: t("firstnameLabel"),
+      placeholder: t("firstnamePlaceholder"),
+    },
+    {
+      key: "lastname",
+      label: t("lastnameLabel"),
+      placeholder: t("lastnamePlaceholder"),
+    },
   ];
 
   return (
@@ -262,8 +274,12 @@ export default function EditProfile({ navigation, route }) {
                     </View>
                     <Switch
                       value={equip.mobileSewingMachine}
-                      onValueChange={() => handleEquipSwitch("mobileSewingMachine")}
-                      thumbColor={equip.mobileSewingMachine ? "#fff" : "#f4f3f4"}
+                      onValueChange={() =>
+                        handleEquipSwitch("mobileSewingMachine")
+                      }
+                      thumbColor={
+                        equip.mobileSewingMachine ? "#fff" : "#f4f3f4"
+                      }
                       trackColor={{ true: COLORS.primary, false: "#D1D5DB" }}
                       ios_backgroundColor="#D1D5DB"
                     />
@@ -356,43 +372,32 @@ export default function EditProfile({ navigation, route }) {
               </Text>
             </View>
           </Animated.View>
+          <View className="mt-10">
+            <Pressable
+              onPress={handleSave}
+              disabled={saving}
+              className="py-4 items-center flex-row justify-center"
+              style={{
+                backgroundColor: saving ? "#D1D5DB" : COLORS.primary,
+              }}
+            >
+              {saving ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <MaterialIcons name="check" size={18} color="#fff" />
+                  <Text
+                    className="text-sm font-bold text-white ml-2 uppercase tracking-wider"
+                    style={{ fontFamily: "OpenSans_700Bold" }}
+                  >
+                    {t("save")}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
-
-      <View
-        className="absolute bottom-0 left-0 right-0 px-5 py-4"
-        style={{
-          backgroundColor: "#fff",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.1,
-          shadowRadius: 12,
-          elevation: 10,
-        }}
-      >
-        <Pressable
-          onPress={handleSave}
-          disabled={saving}
-          className="py-4 items-center flex-row justify-center"
-          style={{
-            backgroundColor: saving ? "#D1D5DB" : COLORS.primary,
-          }}
-        >
-          {saving ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <>
-              <MaterialIcons name="check" size={18} color="#fff" />
-              <Text
-                className="text-sm font-bold text-white ml-2 uppercase tracking-wider"
-                style={{ fontFamily: "OpenSans_700Bold" }}
-              >
-                {t("save")}
-              </Text>
-            </>
-          )}
-        </Pressable>
-      </View>
     </SafeAreaView>
   );
 }

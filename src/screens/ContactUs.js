@@ -101,9 +101,7 @@ export default function ContactUs({ navigation }) {
         setCustomSubject("");
         setMessage("");
 
-        setTimeout(() => {
-          navigation.goBack();
-        }, 1500);
+        navigation.goBack();
       } else {
         // Log erreur serveur détaillé
         console.error("Erreur serveur:", {
@@ -163,7 +161,7 @@ export default function ContactUs({ navigation }) {
             >
               <Text
                 className="text-sm text-gray-700 leading-5"
-                style={{ fontFamily: "OpenSans_400Regular" }}
+                style={{ fontFamily: "SourceSans3_400Regular" }}
               >
                 {t("contactIntro")}
               </Text>
@@ -179,13 +177,13 @@ export default function ContactUs({ navigation }) {
                   <View className="ml-3 flex-1">
                     <Text
                       className="text-xs text-gray-500 mb-1 uppercase tracking-wider"
-                      style={{ fontFamily: "OpenSans_600SemiBold" }}
+                      style={{ fontFamily: "SourceSans3_600SemiBold" }}
                     >
                       {t("yourEmail")}
                     </Text>
                     <Text
                       className="text-sm text-gray-900"
-                      style={{ fontFamily: "OpenSans_400Regular" }}
+                      style={{ fontFamily: "SourceSans3_400Regular" }}
                     >
                       {userEmail}
                     </Text>
@@ -200,7 +198,7 @@ export default function ContactUs({ navigation }) {
             >
               <Text
                 className="text-xs text-gray-500 mb-2 uppercase tracking-wider"
-                style={{ fontFamily: "OpenSans_600SemiBold" }}
+                style={{ fontFamily: "SourceSans3_600SemiBold" }}
               >
                 {t("subject")} *
               </Text>
@@ -222,7 +220,7 @@ export default function ContactUs({ navigation }) {
                   <Text
                     className="text-sm ml-3"
                     style={{
-                      fontFamily: "OpenSans_400Regular",
+                      fontFamily: "SourceSans3_400Regular",
                       color: subject ? COLORS.primary : "#9CA3AF",
                     }}
                   >
@@ -251,7 +249,7 @@ export default function ContactUs({ navigation }) {
                   >
                     <Text
                       className="text-white text-base"
-                      style={{ fontFamily: "OpenSans_700Bold" }}
+                      style={{ fontFamily: "SourceSans3_700Bold" }}
                     >
                       {t("chooseSubject")}
                     </Text>
@@ -278,7 +276,7 @@ export default function ContactUs({ navigation }) {
                       <Text
                         className="text-base ml-3 flex-1"
                         style={{
-                          fontFamily: "OpenSans_400Regular",
+                          fontFamily: "SourceSans3_400Regular",
                           color:
                             subject === s.label ? COLORS.primary : "#374151",
                         }}
@@ -305,7 +303,7 @@ export default function ContactUs({ navigation }) {
               >
                 <Text
                   className="text-xs text-gray-500 mb-2 uppercase tracking-wider"
-                  style={{ fontFamily: "OpenSans_600SemiBold" }}
+                  style={{ fontFamily: "SourceSans3_600SemiBold" }}
                 >
                   {t("specifySubject")} *
                 </Text>
@@ -320,7 +318,7 @@ export default function ContactUs({ navigation }) {
                     placeholderTextColor="#9CA3AF"
                     className="text-sm text-gray-900"
                     style={{
-                      fontFamily: "OpenSans_400Regular",
+                      fontFamily: "SourceSans3_400Regular",
                       height: 36,
                       paddingVertical: 0,
                     }}
@@ -328,7 +326,7 @@ export default function ContactUs({ navigation }) {
                 </View>
                 <Text
                   className="text-xs text-gray-400 text-right mt-1"
-                  style={{ fontFamily: "OpenSans_400Regular" }}
+                  style={{ fontFamily: "SourceSans3_400Regular" }}
                 >
                   {customSubject.length}/100
                 </Text>
@@ -341,7 +339,7 @@ export default function ContactUs({ navigation }) {
             >
               <Text
                 className="text-xs text-gray-500 mb-2 uppercase tracking-wider"
-                style={{ fontFamily: "OpenSans_600SemiBold" }}
+                style={{ fontFamily: "SourceSans3_600SemiBold" }}
               >
                 {t("yourMessage")} *
               </Text>
@@ -357,14 +355,14 @@ export default function ContactUs({ navigation }) {
                   textAlignVertical="top"
                   className="text-sm text-gray-900"
                   style={{
-                    fontFamily: "OpenSans_400Regular",
+                    fontFamily: "SourceSans3_400Regular",
                     minHeight: 120,
                   }}
                 />
               </View>
               <Text
                 className="text-xs text-gray-400 text-right mt-1"
-                style={{ fontFamily: "OpenSans_400Regular" }}
+                style={{ fontFamily: "SourceSans3_400Regular" }}
               >
                 {message.length}/500
               </Text>
@@ -378,16 +376,16 @@ export default function ContactUs({ navigation }) {
               >
                 <Text
                   className="text-xs text-gray-600 mb-2 uppercase tracking-wider"
-                  style={{ fontFamily: "OpenSans_600SemiBold" }}
+                  style={{ fontFamily: "SourceSans3_600SemiBold" }}
                 >
                   {t("summary")}
                 </Text>
                 <View className="space-y-1">
                   <Text
                     className="text-xs text-gray-700"
-                    style={{ fontFamily: "OpenSans_400Regular" }}
+                    style={{ fontFamily: "SourceSans3_400Regular" }}
                   >
-                    <Text style={{ fontFamily: "OpenSans_600SemiBold" }}>
+                    <Text style={{ fontFamily: "SourceSans3_600SemiBold" }}>
                       {t("subject")}:{" "}
                     </Text>
                     {subject === t("other") ? customSubject : subject}
@@ -395,44 +393,33 @@ export default function ContactUs({ navigation }) {
                 </View>
               </Animated.View>
             )}
+            <View className="">
+              <Pressable
+                disabled={sending || !isFormValid()}
+                onPress={handleSend}
+                className="py-4 items-center flex-row justify-center"
+                style={{
+                  backgroundColor:
+                    sending || !isFormValid() ? "#D1D5DB" : COLORS.primary,
+                }}
+              >
+                {sending ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <MaterialIcons name="send" size={18} color="#fff" />
+                    <Text
+                      className="text-sm font-bold text-white ml-2 uppercase tracking-wider"
+                      style={{ fontFamily: "SourceSans3_700Bold" }}
+                    >
+                      {t("send")}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            </View>
           </View>
         </ScrollView>
-
-        <View
-          className="absolute bottom-0 left-0 right-0 px-5 py-4"
-          style={{
-            backgroundColor: "#fff",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 12,
-            elevation: 10,
-          }}
-        >
-          <Pressable
-            disabled={sending || !isFormValid()}
-            onPress={handleSend}
-            className="py-4 items-center flex-row justify-center"
-            style={{
-              backgroundColor:
-                sending || !isFormValid() ? "#D1D5DB" : COLORS.primary,
-            }}
-          >
-            {sending ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <MaterialIcons name="send" size={18} color="#fff" />
-                <Text
-                  className="text-sm font-bold text-white ml-2 uppercase tracking-wider"
-                  style={{ fontFamily: "OpenSans_700Bold" }}
-                >
-                  {t("send")}
-                </Text>
-              </>
-            )}
-          </Pressable>
-        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

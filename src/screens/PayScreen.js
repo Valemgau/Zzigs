@@ -5,13 +5,17 @@ import {
   Alert,
   Pressable,
   ActivityIndicator,
-  Image,
   ScrollView,
   SafeAreaView,
 } from "react-native";
-import { useStripe } from "@stripe/stripe-react-native";
+import {
+  useStripe,
+  isPlatformPaySupported,
+  PlatformPayButton,
+  confirmPlatformPayPayment,
+} from "@stripe/stripe-react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../../config/firebase";
 import { showMessage } from "react-native-flash-message";
 import { COLORS } from "../styles/colors";
@@ -19,6 +23,7 @@ import Loader from "../components/Loader";
 import { API_URL, DOMAIN } from "@env";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { Image } from "expo-image";
 
 export default function PayScreen() {
   const navigation = useNavigation();
@@ -30,12 +35,23 @@ export default function PayScreen() {
 
   const [loading, setLoading] = useState(true);
   const [paymentReady, setPaymentReady] = useState(false);
+  const [isApplePaySupported, setIsApplePaySupported] = useState(false);
   const [appointment, setAppointment] = useState(null);
   const [clientSecret, setClientSecret] = useState(null);
+  const [CommissionAdmin, setCommissionAdmin] = useState(0);
+  const [TVaAdmin, setTVaAdmin] = useState(0);
   const [config, setConfig] = useState({
-    tvaPercent: 20,
-    adminCommissionPercent: 10,
+    tvaPercent: 0,
+    adminCommissionPercent: 0,
   });
+
+  useEffect(() => {
+    const checkApplePay = async () => {
+      const supported = await isPlatformPaySupported();
+      setIsApplePaySupported(supported);
+    };
+    checkApplePay();
+  }, []);
 
   useEffect(() => {
     const fetchDataAndInit = async () => {
@@ -57,23 +73,26 @@ export default function PayScreen() {
         );
         if (!clientDoc.exists() || !couturierDoc.exists())
           throw new Error(t("clientOrTailorNotFound"));
-        const clientData = clientDoc.data();
-        const couturierData = couturierDoc.data();
+        const clientData = { id: clientDoc.id, ...clientDoc.data() };
+
+        const couturierData = {
+          id: couturierDoc.data(),
+          ...couturierDoc.data(),
+        };
 
         const configRef = doc(db, "config", "payments");
         const configSnap = await getDoc(configRef);
         const configData = configSnap.exists() ? configSnap.data() : {};
-        const tvaPercent = Number(configData?.tva ?? 20);
-        const adminCommissionPercent = Number(
-          configData?.adminCommission ?? 10
-        );
+        const tvaPercent = Number(configData?.tva ?? 0);
+        const adminCommissionPercent = Number(configData?.adminCommission ?? 0);
         setConfig({ tvaPercent, adminCommissionPercent });
 
         const priceHT = Number(offerData.price || 0);
         const tvaAmount = (priceHT * tvaPercent) / 100;
         const commissionAmount = (priceHT * adminCommissionPercent) / 100;
         const totalAmount = priceHT + tvaAmount + commissionAmount;
-
+        setTVaAdmin(tvaAmount);
+        setCommissionAdmin(commissionAmount);
         setAppointment({
           ...appointData,
           offer: offerData,
@@ -137,37 +156,94 @@ export default function PayScreen() {
     fetchDataAndInit();
   }, [appointmentId, initPaymentSheet, t]);
 
+  const handlePaymentSuccess = async () => {
+    await updateDoc(doc(db, "appointments", appointmentId), {
+      status: "paymentConfirmed",
+      paidAt: new Date(),
+    });
+    await addDoc(collection(db, "payments"), {
+      appointmentId,
+      amount: appointment.totalAmount,
+      commission: Math.round(CommissionAdmin * 100),
+      tva: Math.round(TVaAdmin * 100),
+      clientId: appointment.client.id,
+      couturierId: appointment.couturier.id,
+      status: "confirmed",
+      paidAt: new Date(),
+      createdAt: new Date(),
+    });
+    try {
+      await fetch(`${API_URL}/payment_confirmed.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appointmentId,
+          email: appointment.client.email,
+          amount: Math.round(appointment.totalAmount * 100),
+          commission: Math.round(CommissionAdmin * 100),
+          tva: Math.round(TVaAdmin * 100),
+          clientData: appointment.client,
+          couturierData: appointment.couturier,
+          colors: { primary: COLORS.primary, secondary: COLORS.secondary },
+        }),
+      });
+    } catch (e) {
+      console.warn("Erreur envoi mails post-paiement :", e);
+    }
+
+    // showMessage({
+    //   message: t("paymentSuccessful"),
+    //   type: "success",
+    // });
+    // navigation.goBack();
+    navigation.replace("SuccessPaymentScreen");0
+  };
+
+  const handleApplePayment = async () => {
+    if (!clientSecret) return;
+
+    setLoading(true);
+    try {
+      const { error } = await confirmPlatformPayPayment(clientSecret, {
+        applePay: {
+          cartItems: [
+            {
+              label: DOMAIN,
+              amount: appointment.totalAmount.toFixed(2),
+              paymentType: "Immediate",
+            },
+          ],
+          merchantCountryCode: "FR",
+          currencyCode: "EUR",
+        },
+      });
+
+      if (error) {
+        if (error.code === "Canceled") {
+          setLoading(false);
+          return;
+        }
+        throw error;
+      }
+
+      await handlePaymentSuccess();
+    } catch (err) {
+      if (err.code !== "Canceled") {
+        Alert.alert(t("error"), err.message);
+        console.error(err);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePayment = async () => {
     setLoading(true);
     try {
       const { error } = await presentPaymentSheet();
       if (error) throw error;
 
-      await updateDoc(doc(db, "appointments", appointmentId), {
-        status: "paymentConfirmed",
-        paidAt: new Date(),
-      });
-      try {
-        await fetch(`${API_URL}/payment_confirmed.php`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            appointmentId,
-            email: appointment.client.email,
-            amount: Math.round(appointment.totalAmount * 100),
-            clientData: appointment.client,
-            couturierData: appointment.couturier,
-            colors: { primary: COLORS.primary, secondary: COLORS.secondary },
-          }),
-        });
-      } catch (e) {
-        console.warn("Erreur envoi mails post-paiement :", e);
-      }
-      showMessage({
-        message: t("paymentSuccessful"),
-        type: "success",
-      });
-      navigation.goBack();
+      await handlePaymentSuccess();
     } catch (err) {
       Alert.alert(t("error"), err.message);
       console.error(err);
@@ -329,20 +405,22 @@ export default function PayScreen() {
                   </Text>
                 </View>
 
-                <View className="flex-row justify-between items-center pt-3 border-t border-gray-100">
-                  <Text
-                    style={{ fontFamily: "OpenSans_400Regular" }}
-                    className="text-sm text-gray-600"
-                  >
-                    {t("vat")} ({config.tvaPercent}%)
-                  </Text>
-                  <Text
-                    style={{ fontFamily: "OpenSans_600SemiBold" }}
-                    className="text-sm text-gray-900"
-                  >
-                    {safeNumber(appointment.tvaAmount).toFixed(2)} €
-                  </Text>
-                </View>
+                {config.tvaPercent > 0 && (
+                  <View className="flex-row justify-between items-center pt-3 border-t border-gray-100">
+                    <Text
+                      style={{ fontFamily: "OpenSans_400Regular" }}
+                      className="text-sm text-gray-600"
+                    >
+                      {t("vat")} ({config.tvaPercent}%)
+                    </Text>
+                    <Text
+                      style={{ fontFamily: "OpenSans_600SemiBold" }}
+                      className="text-sm text-gray-900"
+                    >
+                      {safeNumber(appointment.tvaAmount).toFixed(2)} €
+                    </Text>
+                  </View>
+                )}
 
                 <View className="flex-row justify-between items-center pt-3 border-t border-gray-100">
                   <Text
@@ -370,7 +448,10 @@ export default function PayScreen() {
                     {t("totalIncludingTax")}
                   </Text>
                   <Text
-                    style={{ fontFamily: "OpenSans_700Bold", color: COLORS.primary }}
+                    style={{
+                      fontFamily: "OpenSans_700Bold",
+                      color: COLORS.primary,
+                    }}
                     className="text-2xl"
                   >
                     {safeNumber(appointment.totalAmount).toFixed(2)} €
@@ -405,7 +486,7 @@ export default function PayScreen() {
                 style={{
                   width: 60,
                   height: 60,
-                  resizeMode: "contain",
+                  contentFit: "contain",
                 }}
               />
             </View>
@@ -423,6 +504,18 @@ export default function PayScreen() {
           elevation: 10,
         }}
       >
+        {isApplePaySupported && paymentReady && !loading && (
+          <PlatformPayButton
+            onPress={handleApplePayment}
+            borderRadius={12}
+            style={{
+              width: "100%",
+              height: 50,
+              marginBottom: 12,
+            }}
+          />
+        )}
+
         <Pressable
           onPress={handlePayment}
           disabled={!paymentReady || loading}

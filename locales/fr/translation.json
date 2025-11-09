@@ -471,7 +471,7 @@
   "paymentInstructions": "Le couturier a marqué la mission comme terminée. Veuillez effectuer le paiement de {{price}}€ pour la prestation via l'application par carte bancaire. Des frais de service supplémentaires seront appliqués au montant final. N'effectuez aucun paiement en dehors de la plateforme.",
   "paymentWarning": "⚠️ Attention : Le paiement doit obligatoirement se faire dans l'application pour votre sécurité.",
   "missionCompletedAndPaid": "Mission terminée et payée",
-  "thankYouForUsing": "Merci d'avoir utilisé zZigs ! N'hésitez pas à laisser un avis.",
+  "thankYouForUsing": "Merci d'avoir utilisé zzigs ! N'hésitez pas à laisser un avis.",
   "acceptOffer": "Accepter l'offre",
   "proposeAppointment": "Proposer un rendez-vous",
   "payNow": "Payer maintenant",
@@ -516,8 +516,1160 @@
   "photoUpdatedDesc": "Votre photo de profil a été modifiée",
   "photoUpdateError": "Impossible de mettre à jour la photo",
   "customer": "Demandeur",
-  "status": "Statut",
   "verified": "vérifié",
-  "version": "Version"
+  "version": "Version",
 
+  "filters": {
+    "all": "Tout",
+    "pending": "En attente",
+    "confirmed": "Acceptées",
+    "withAppointment": "Avec RDV",
+    "payment": "Paiement",
+    "refused": "Refusées"
+  },
+  "status": {
+    "status": "Statut",
+    "appointmentProposed": "RDV proposé",
+    "appointmentConfirmed": "RDV confirmé",
+    "inProgress": "En cours",
+    "toPay": "À payer",
+    "completed": "Terminé",
+    "cancelled": "Annulé",
+    "accepted": "Acceptée",
+    "pending": "En attente",
+    "refused": "Refusée",
+    "unknown": "Inconnu"
+  },
+  "contextual": {
+    "awaitingYourDecision": "En attente de votre décision",
+    "awaitingClientResponse": "En attente de réponse du client",
+    "offerRefused": "Offre refusée",
+    "proposeAppointment": "Proposez un rendez-vous",
+    "awaitingAppointmentProposal": "En attente de proposition de RDV",
+    "awaitingConfirmation": "En attente de confirmation",
+    "confirmAppointment": "Confirmez le rendez-vous",
+    "missionInProgress": "Mission en cours",
+    "paymentRequired": "Paiement requis",
+    "awaitingPayment": "En attente de paiement",
+    "missionCompleted": "Mission terminée",
+    "appointmentCancelled": "Rendez-vous annulé",
+    "newConversation": "Nouvelle conversation",
+    "appointmentOn": "RDV le {{date}}"
+  },
+  "defaults": {
+    "project": "Projet",
+    "user": "Utilisateur"
+  },
+  "roles": {
+    "client": "Client",
+    "tailor": "Couturier"
+  },
+  "empty": {
+    "noResults": "Aucun résultat",
+    "noConversations": "Aucune conversation",
+    "tryAnotherFilter": "Essayez un autre filtre",
+    "conversationsWillAppear": "Vos conversations apparaîtront ici"
+  },
+  "errors": {
+    "userNotConnected": "Utilisateur non connecté"
+  },
+  "header": {
+    "title": "Conversations",
+    "conversationSingular": "conversation",
+    "conversationPlural": "conversations",
+    "filtered": "(filtrées)"
+  },
+
+  "chat": {
+    "header": {
+      "backButton": "Retour"
+    },
+    "status": {
+      "pending": "En attente",
+      "accepted": "Acceptée",
+      "refused": "Refusée"
+    },
+    "infoBar": {
+      "clientPendingDecision": "⏳ Vous devez accepter ou refuser cette offre",
+      "tailorWaitingClient": "⏳ En attente de l'acceptation de l'offre par le client",
+      "clientMustProposeAppointment": "📅 Vous devez proposer un rendez-vous",
+      "tailorWaitingAppointment": "⏳ En attente de proposition de rdv par le client",
+      "clientWaitingConfirmation": "⏳ En attente de confirmation du rendez-vous par le couturier",
+      "tailorMustConfirm": "📅 Vous devez confirmer ou refuser le rendez-vous proposé",
+      "appointmentConfirmed": "✅ Rendez-vous confirmé le {{date}}",
+      "missionInProgress": "🔧 Mission en cours de réalisation",
+      "clientMustPay": "💳 Mission terminée - Vous devez effectuer le paiement",
+      "tailorWaitingPayment": "⏳ En attente du paiement par le client",
+      "missionCompletedPaid": "✅ Mission terminée et payée - Merci !",
+      "appointmentCancelled": "❌ Rendez-vous annulé",
+      "offerRefused": "❌ Offre refusée"
+    },
+    "buttons": {
+      "acceptRefuse": "Accepter/Refuser",
+      "proposeAppointment": "Proposer RDV",
+      "cancelAppointment": "Annuler RDV",
+      "pay": "Payer {{amount}}€",
+      "modifyPrice": "Modifier prix",
+      "confirmAppointment": "Confirmer RDV",
+      "refuseAppointment": "Refuser RDV",
+      "start": "Démarrer",
+      "cancel": "Annuler",
+      "completed": "Terminé"
+    },
+    "input": {
+      "placeholder": "Écrire un message..."
+    },
+    "systemMessages": {
+      "offerAccepted": "✅ L'offre a été acceptée pour {{price}}€",
+      "offerRefused": "❌ L'offre a été refusée",
+      "priceModified": "💶 Prix modifié : {{oldPrice}}€ → {{newPrice}}€",
+      "appointmentProposed": "📅 Rendez-vous proposé : {{date}}",
+      "appointmentConfirmed": "✅ Rendez-vous confirmé pour le {{date}}",
+      "appointmentRefused": "❌ Le rendez-vous proposé a été refusé",
+      "appointmentCancelled": "🚫 Rendez-vous annulé. Raison : {{reason}}",
+      "missionStarted": "🔧 Mission démarrée",
+      "missionCompleted": "✅ Mission terminée ! En attente du paiement de {{price}}€"
+    },
+    "notifications": {
+      "newMessage": "{{userName}} vous a envoyé un message",
+      "offerAccepted": "🎉 Offre acceptée !",
+      "offerAcceptedDesc": "Votre offre de {{price}}€ pour \"{{projectTitle}}\" a été acceptée",
+      "offerRefusedTitle": "Offre refusée",
+      "offerRefusedDesc": "Votre offre pour \"{{projectTitle}}\" a été refusée",
+      "priceModifiedTitle": "Prix modifié",
+      "priceModifiedDesc": "Le couturier a modifié le prix de l'offre : {{price}}€",
+      "newAppointmentTitle": "Nouveau rendez-vous proposé",
+      "newAppointmentDesc": "Rendez-vous proposé le {{date}}",
+      "appointmentConfirmedTitle": "Rendez-vous confirmé !",
+      "appointmentConfirmedDesc": "Le rendez-vous est confirmé pour le {{date}}",
+      "appointmentRefusedTitle": "Rendez-vous refusé",
+      "appointmentRefusedDesc": "Le couturier a refusé le créneau proposé. Proposez un autre créneau.",
+      "appointmentCancelledTitle": "Rendez-vous annulé",
+      "appointmentCancelledDesc": "Raison : {{reason}}",
+      "missionCompletedTitle": "Mission terminée !",
+      "missionCompletedDesc": "Paiement de {{price}}€ requis"
+    },
+    "flashMessages": {
+      "offerAcceptedTitle": "Offre acceptée",
+      "offerAcceptedDesc": "Le couturier a été notifié",
+      "offerRefusedTitle": "Offre refusée",
+      "offerRefusedDesc": "Le couturier a été notifié",
+      "priceModifiedTitle": "Prix modifié avec succès",
+      "priceModifiedDesc": "Le client a été notifié",
+      "appointmentProposedTitle": "Rendez-vous proposé",
+      "appointmentProposedDesc": "En attente de confirmation du couturier",
+      "appointmentConfirmedTitle": "Rendez-vous confirmé",
+      "appointmentRefusedTitle": "Rendez-vous refusé",
+      "appointmentCancelledTitle": "Rendez-vous annulé",
+      "missionInProgressTitle": "Mission en cours",
+      "missionCompletedTitle": "Mission terminée",
+      "missionCompletedDesc": "En attente du paiement",
+      "errorTitle": "Erreur",
+      "errorSendMessage": "Impossible d'envoyer le message",
+      "errorAcceptOffer": "Impossible d'accepter l'offre",
+      "errorRefuseOffer": "Impossible de refuser l'offre",
+      "errorModifyPrice": "Impossible de modifier le prix",
+      "errorProposeAppointment": "Impossible de proposer le rendez-vous",
+      "invalidPrice": "Prix invalide",
+      "invalidPriceDesc": "Veuillez entrer un prix valide",
+      "dateTimeRequired": "Date et heure requises",
+      "dateTimeRequiredDesc": "Veuillez sélectionner une date et une heure",
+      "reasonRequired": "Raison requise",
+      "reasonRequiredDesc": "Veuillez indiquer la raison de l'annulation",
+      "noPhoneNumber": "Pas de numéro",
+      "noPhoneNumberDesc": "Cet utilisateur n'a pas renseigné de numéro"
+    },
+    "modals": {
+      "decision": {
+        "title": "Décision sur l'offre",
+        "proposedPrice": "Prix proposé :",
+        "acceptButton": "✅ Accepter l'offre",
+        "refuseButton": "❌ Refuser l'offre",
+        "cancelButton": "Annuler"
+      },
+      "price": {
+        "title": "Modifier le prix",
+        "currentPrice": "Prix actuel :",
+        "placeholder": "Nouveau prix (€)",
+        "cancelButton": "Annuler",
+        "modifyButton": "Modifier"
+      },
+      "appointment": {
+        "title": "Proposer un rendez-vous",
+        "cancelButton": "Annuler",
+        "proposeButton": "Proposer"
+      },
+      "cancelAppointment": {
+        "title": "Annuler le rendez-vous",
+        "description": "Veuillez indiquer la raison de l'annulation",
+        "placeholder": "Raison de l'annulation...",
+        "backButton": "Retour",
+        "confirmButton": "Confirmer"
+      }
+    },
+    "defaults": {
+      "user": "Utilisateur",
+      "system": "Système"
+    }
+  },
+
+  "settings": {
+    "completion": {
+      "profilePhoto": "Photo de profil",
+      "personalInfo": "Informations personnelles",
+      "phoneNumber": "Numéro de téléphone",
+      "location": "Localisation",
+      "availability": "Disponibilités",
+      "identityDocuments": "Documents d'identité",
+      "emailVerified": "Email vérifié",
+      "accountVerified": "Compte vérifié",
+      "nameAndFirstname": "Nom et prénom",
+      "profileCompletion": "Complétude du profil",
+      "profile": "Profil"
+    },
+    "sections": {
+      "account": "Compte",
+      "preferences": "Préférences",
+      "support": "Support",
+      "danger": "Danger"
+    },
+    "menu": {
+      "personalInfo": "Informations personnelles",
+      "phoneNumber": "Numéro de téléphone",
+      "manageLocation": "Gérer ma localisation",
+      "manageAvailability": "Gérer mes disponibilités",
+      "manageDocuments": "Gérer mes documents",
+      "changeLanguage": "Modifier la langue",
+      "contactUs": "Nous contacter",
+      "logout": "Se déconnecter",
+      "deleteAccount": "Supprimer mon compte"
+    },
+    "logout": {
+      "confirmTitle": "Confirmer la déconnexion",
+      "confirmMessage": "Voulez-vous vraiment vous déconnecter ?",
+      "cancel": "Annuler",
+      "confirm": "Se déconnecter",
+      "errorTitle": "Erreur",
+      "errorMessage": "Impossible de se déconnecter. Veuillez réessayer."
+    },
+    "role": {
+      "nanny": "Nounou",
+      "parent": "Parent"
+    },
+    "visibility": {
+      "title": "Visibilité du profil",
+      "visible": "Visible par les parents",
+      "notVisible": "Non visible",
+      "active": "ACTIF",
+      "inactive": "INACTIF"
+    },
+    "alert": {
+      "notVisibleTitle": "Profil non visible",
+      "notVisibleMessage": "Complétez toutes les étapes ci-dessus pour que votre profil soit visible par les parents."
+    },
+    "photo": {
+      "successTitle": "Photo mise à jour",
+      "successMessage": "Votre photo de profil a été modifiée.",
+      "errorTitle": "Erreur",
+      "errorMessage": "Impossible de modifier la photo."
+    },
+    "verification": {
+      "title": "Vérification en cours",
+      "message": "Votre compte est actuellement en cours de vérification par notre équipe.",
+      "documentsReceived": "Vos documents ont bien été reçus",
+      "processingTime": "La vérification prend généralement 24 à 48 heures",
+      "emailNotification": "Vous recevrez un email dès que votre compte sera validé",
+      "thanksMessage": "Merci de votre patience. Notre équipe vérifie soigneusement chaque profil pour garantir la sécurité de tous.",
+      "understood": "J'ai compris"
+    },
+    "version": "Version"
+  },
+
+  "editProfile": {
+    "header": {
+      "welcomeTitle": "Bienvenue !",
+      "profileTitle": "Mon profil",
+      "welcomeSubtitle": "Complétez ces informations pour commencer",
+      "profileSubtitle": "Profil {{role}}"
+    },
+    "role": {
+      "nanny": "nounou",
+      "parent": "parent"
+    },
+    "progress": {
+      "label": "Progression"
+    },
+    "discovery": {
+      "question": "Comment nous avez-vous connu ? *",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "google": "Google",
+      "wordOfMouth": "Bouche à oreille",
+      "other": "Autre",
+      "customPlaceholder": "Précisez..."
+    },
+    "sections": {
+      "identity": "Identité",
+      "hourlyRate": "Tarif horaire",
+      "presentation": "Présentation *"
+    },
+    "fields": {
+      "username": "Nom d'utilisateur *",
+      "lastname": "Nom *",
+      "firstname": "Prénom *",
+      "birthdate": "Date de naissance *"
+    },
+    "placeholders": {
+      "username": "johndoe",
+      "lastname": "Dupont",
+      "firstname": "Marie",
+      "birthdate": "JJ/MM/AAAA",
+      "aboutMe": "Parlez de votre expérience, vos qualités..."
+    },
+    "hints": {
+      "username": "Uniquement lettres, chiffres et _",
+      "birthdate": "18 ans minimum requis"
+    },
+    "currency": {
+      "euroPerHour": "€/h"
+    },
+    "errors": {
+      "usernameRequired": "Le nom d'utilisateur est requis",
+      "usernameMinLength": "Minimum 3 caractères",
+      "usernameMaxLength": "Maximum 20 caractères",
+      "usernameInvalidChars": "Lettres, chiffres et _ uniquement",
+      "lastnameRequired": "Le nom est requis",
+      "lastnameMinLength": "Au moins 2 caractères",
+      "firstnameRequired": "Le prénom est requis",
+      "firstnameMinLength": "Au moins 2 caractères",
+      "birthdateRequired": "La date est requise",
+      "birthdateInvalidFormat": "Format invalide (JJ/MM/AAAA)",
+      "birthdateInvalidAge": "Date invalide ou âge < 18 ans",
+      "aboutMeRequired": "La présentation est obligatoire",
+      "aboutMeMinLength": "Minimum 50 caractères ({{count}}/50)",
+      "aboutMeMaxLength": "Maximum 1000 caractères",
+      "priceRequired": "Le prix est requis",
+      "priceInvalidNumber": "Doit être un nombre",
+      "pricePositive": "Doit être positif",
+      "priceMaximum": "Maximum 100€/h",
+      "priceMinimumRecommended": "Minimum 5€/h recommandé"
+    },
+    "validation": {
+      "incompleteTitle": "Formulaire incomplet",
+      "incompleteMessage": "Veuillez corriger les erreurs.",
+      "discoveryMissingTitle": "Information manquante",
+      "discoveryMissingMessage": "Indiquez-nous comment vous avez connu Magic Nona.",
+      "customDiscoveryTitle": "Précision requise",
+      "customDiscoveryMessage": "Veuillez préciser votre réponse."
+    },
+    "success": {
+      "title": "✅ Profil enregistré !",
+      "welcomeMessage": "Bienvenue sur Magic Nona !",
+      "updatedMessage": "Vos informations ont été mises à jour."
+    },
+    "error": {
+      "title": "Erreur",
+      "message": "Impossible de sauvegarder. Réessayez."
+    },
+    "priceModal": {
+      "title": "Tarification flexible",
+      "subtitle": "Prix négociable pour chaque mission",
+      "exampleTitle": "💡 Exemple",
+      "exampleCalculation": "15€/h × 4 heures = 60€",
+      "understood": "Compris !"
+    },
+    "buttons": {
+      "start": "Commencer",
+      "save": "Enregistrer"
+    }
+  },
+
+  "editDocuments": {
+    "header": {
+      "title": "Vérification d'identité",
+      "subtitle": "Sécurisez votre profil avec vos documents officiels"
+    },
+    "progress": {
+      "label": "Progression",
+      "count": "{{count}}/4",
+      "remaining": "{{count}} document(s) restant(s)"
+    },
+    "verificationStatus": {
+      "verified": {
+        "title": "Documents validés ✓",
+        "description": "Votre profil est vérifié et sécurisé"
+      },
+      "pending": {
+        "title": "En cours de vérification",
+        "description": "Nous examinons vos documents sous 24-48h"
+      }
+    },
+    "documentType": {
+      "sectionTitle": "Type de document",
+      "types": {
+        "identity": "Carte d'identité",
+        "passport": "Passeport",
+        "license": "Permis de conduire",
+        "residence": "Titre de séjour"
+      }
+    },
+    "identityDocument": {
+      "sectionTitle": "Pièce d'identité",
+      "subtitle": "Ajoutez le recto et le verso de votre document",
+      "front": {
+        "label": "Recto",
+        "description": "Face avant"
+      },
+      "back": {
+        "label": "Verso",
+        "description": "Face arrière"
+      },
+      "pdfLabel": "PDF"
+    },
+    "criminalRecord": {
+      "sectionTitle": "Casier judiciaire",
+      "subtitle": "Bulletin n°3 obligatoire pour travailler avec les enfants",
+      "addButton": "Ajouter le casier judiciaire",
+      "acceptedFormats": "PDF ou image acceptée",
+      "pdfLabel": "Document PDF"
+    },
+    "securityNotice": {
+      "title": "Sécurité et confidentialité",
+      "description": "Vos documents sont cryptés et utilisés uniquement pour la vérification"
+    },
+    "pickerModal": {
+      "title": "Choisir une source",
+      "camera": {
+        "title": "Caméra",
+        "description": "Prendre une photo maintenant"
+      },
+      "gallery": {
+        "title": "Galerie",
+        "description": "Choisir depuis vos photos"
+      },
+      "files": {
+        "title": "Fichiers",
+        "description": "Importer un PDF ou document"
+      },
+      "cancel": "Annuler"
+    },
+    "buttons": {
+      "validate": "Valider et envoyer"
+    },
+    "errors": {
+      "loadError": {
+        "title": "Erreur",
+        "message": "Impossible de charger les documents."
+      },
+      "cameraPermission": {
+        "title": "Permission refusée",
+        "message": "Permission d'accès à la caméra refusée."
+      },
+      "galleryPermission": {
+        "title": "Permission refusée",
+        "message": "Permission d'accès à la galerie refusée."
+      },
+      "documentTypeRequired": {
+        "title": "Champ requis",
+        "message": "Veuillez sélectionner un type de document."
+      },
+      "documentsIncomplete": {
+        "title": "Documents incomplets",
+        "message": "Ajoutez les photos recto et verso de votre document."
+      },
+      "criminalRecordMissing": {
+        "title": "Document manquant",
+        "message": "Ajoutez votre casier judiciaire."
+      },
+      "uploadError": {
+        "title": "Erreur",
+        "message": "Impossible d'envoyer les documents."
+      }
+    },
+    "success": {
+      "title": "Succès",
+      "message": "Documents envoyés, vérification en cours."
+    }
+  },
+  "editLanguage": {
+    "header": {
+      "title": "Langue de l'application",
+      "subtitle": "Choisissez la langue d'affichage"
+    },
+    "notice": {
+      "autoTranslate": "L'application sera automatiquement traduite dans la langue sélectionnée"
+    },
+    "languages": {
+      "fr": {
+        "label": "Français",
+        "nativeName": "Français"
+      },
+      "en": {
+        "label": "English",
+        "nativeName": "English"
+      },
+      "de": {
+        "label": "Allemand",
+        "nativeName": "Deutsch"
+      },
+      "es": {
+        "label": "Espagnol",
+        "nativeName": "Español"
+      },
+      "it": {
+        "label": "Italien",
+        "nativeName": "Italiano"
+      }
+    },
+    "updating": "Changement en cours...",
+    "success": {
+      "title": "Langue modifiée",
+      "message": "La langue de l'application a été changée avec succès."
+    },
+    "error": {
+      "title": "Erreur",
+      "message": "Impossible de changer la langue.",
+      "loading": "Erreur chargement langue"
+    }
+  },
+  "editLocation": {
+    "header": {
+      "title": "Où habitez-vous ?",
+      "subtitle": "Votre localisation aide les parents à vous trouver plus facilement"
+    },
+    "notice": {
+      "searchInfo": "Recherchez votre adresse ou remplissez les champs manuellement"
+    },
+    "search": {
+      "label": "Rechercher une adresse",
+      "placeholder": "Ex: 123 Rue de la République, Paris"
+    },
+    "separator": "ou saisie manuelle",
+    "form": {
+      "title": "Adresse complète",
+      "address": {
+        "label": "Numéro et rue",
+        "placeholder": "Ex: 123 Rue de la République"
+      },
+      "postalCode": {
+        "label": "Code postal *",
+        "placeholder": "75001"
+      },
+      "city": {
+        "label": "Ville *",
+        "placeholder": "Paris"
+      },
+      "department": {
+        "label": "Département (optionnel)",
+        "placeholder": "Paris"
+      }
+    },
+    "buttons": {
+      "continue": "Continuer",
+      "save": "Enregistrer"
+    },
+    "success": {
+      "addressSaved": {
+        "title": "Adresse enregistrée",
+        "message": "Votre localisation a été mise à jour avec succès."
+      },
+      "locationUpdated": {
+        "title": "Succès",
+        "message": "Votre localisation a été mise à jour."
+      }
+    },
+    "errors": {
+      "loading": "Erreur chargement",
+      "autocomplete": "Erreur autocomplétion",
+      "addressDetails": "Erreur détails adresse",
+      "saveError": {
+        "title": "Erreur",
+        "message": "Impossible de sauvegarder l'adresse."
+      },
+      "updateError": {
+        "title": "Erreur",
+        "message": "Impossible de sauvegarder vos informations."
+      },
+      "requiredFields": {
+        "title": "Champs requis",
+        "message": "Le code postal et la ville sont obligatoires."
+      }
+    }
+  },
+
+  "chatList": {
+    "header": {
+      "chatTitle": "Mes conversations",
+      "title": "Mes rendez-vous",
+      "appointmentsCount": "{{count}} rendez-vous",
+      "filtered": " filtrés"
+    },
+    "filters": {
+      "all": "Tous",
+      "pending": "En attente",
+      "confirmed": "Confirmé",
+      "waitPayment": "À payer",
+      "paymentConfirmed": "Payé",
+      "terminated": "Terminé",
+      "refused": "Refusé"
+    },
+    "statusBadge": {
+      "pending": "En attente",
+      "accepted": "Accepté",
+      "confirmed": "Confirmé",
+      "waitPayment": "À payer",
+      "paymentConfirmed": "Payé",
+      "terminated": "Terminé",
+      "refused": "Refusé",
+      "unknown": "Inconnu"
+    },
+    "contextualMessages": {
+      "nanny": {
+        "pending": "En attente de votre réponse",
+        "refused": "Vous avez refusé ce rendez-vous",
+        "waitPayment": "En attente du paiement client"
+      },
+      "parent": {
+        "pending": "En attente de réponse de la nounou",
+        "refused": "Rendez-vous refusé par la nounou",
+        "waitPayment": "Mission terminée, paiement requis"
+      },
+      "confirmed": "Rendez-vous confirmé",
+      "paymentConfirmed": "Paiement effectué, mission terminée",
+      "terminated": "Mission terminée"
+    },
+    "userLabels": {
+      "client": "Client",
+      "nanny": "Nounou"
+    },
+    "appointmentDetails": {
+      "children": "{{count}} enfant",
+      "childrenPlural": "{{count}} enfants",
+      "hours": "{{hours}}h"
+    },
+    "empty": {
+      "noResults": {
+        "title": "Aucun résultat",
+        "message": "Essayez un autre filtre"
+      },
+      "noAppointments": {
+        "title": "Aucun rendez-vous",
+        "message": "Vos rendez-vous apparaîtront ici"
+      }
+    },
+    "errors": {
+      "notConnected": "Utilisateur non connecté",
+      "loadingUser": "Erreur chargement utilisateur",
+      "enrichment": "Erreur enrichissement",
+      "loadingAppointments": "Erreur chargement rendez-vous"
+    }
+  },
+
+  "editAvailability": {
+    "header": {
+      "title": "Disponibilités",
+      "subtitle": "Configurez vos créneaux horaires disponibles pour chaque jour"
+    },
+    "notice": {
+      "autoSave": "Toutes les modifications sont enregistrées automatiquement"
+    },
+    "days": {
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi",
+      "sunday": "Dimanche"
+    },
+    "status": {
+      "available": "{{start}} - {{end}}",
+      "unavailable": "Indisponible"
+    },
+    "buttons": {
+      "modify": "Modifier",
+      "cancel": "Annuler"
+    },
+    "modal": {
+      "startTime": {
+        "title": "Heure de début",
+        "current": "Actuelle:",
+        "saved": "Heure de début enregistrée",
+        "selectEnd": "Sélectionnez l'heure de fin..."
+      },
+      "endTime": {
+        "title": "Heure de fin",
+        "current": "Actuelle:"
+      }
+    },
+    "errors": {
+      "loadError": {
+        "title": "Erreur",
+        "message": "Impossible de charger les disponibilités."
+      },
+      "saveError": {
+        "title": "Erreur",
+        "message": "Impossible d'enregistrer les modifications."
+      },
+      "invalidTime": {
+        "title": "Erreur",
+        "message": "L'heure de fin doit être après l'heure de début."
+      }
+    }
+  },
+
+  "chatScreen": {
+    "header": {
+      "back": "Retour",
+      "parent": "Parent",
+      "nanny": "Nounou"
+    },
+    "status": {
+      "nanny": {
+        "pending": "En attente de votre réponse",
+        "waitPayment": "En attente du paiement par le client"
+      },
+      "parent": {
+        "pending": "En attente de la réponse de la nounou",
+        "waitPayment": "Mission terminée, paiement requis"
+      },
+      "confirmed": "Rendez-vous confirmé",
+      "paymentConfirmed": "Paiement effectué, mission terminée",
+      "cancelled": "Rendez-vous annulé"
+    },
+    "appointmentDetails": {
+      "children": "{{count}} enfant",
+      "childrenPlural": "{{count}} enfants",
+      "hours": "{{hours}}h",
+      "ages": "Âges : {{ages}}",
+      "hasAnimals": "Présence d'animaux",
+      "specialInstructions": "\"{{instructions}}\""
+    },
+    "contactInfo": {
+      "address": "Adresse",
+      "call": "Appeler",
+      "sms": "SMS"
+    },
+    "actions": {
+      "refuse": "Refuser",
+      "accept": "Accepter",
+      "modifyPrice": "Modifier le prix",
+      "markComplete": "Marquer comme terminé",
+      "pay": "Payer {{price}}€"
+    },
+    "chat": {
+      "placeholder": "Votre message...",
+      "systemMessages": {
+        "accepted": "{{name}} a accepté le rendez-vous",
+        "refused": "{{name}} a refusé le rendez-vous",
+        "priceModified": "{{name}} a modifié le prix à {{price}}€",
+        "missionComplete": "Mission terminée, en attente du paiement client"
+      }
+    },
+    "modifyPriceModal": {
+      "title": "Modifier le prix",
+      "currentPrice": "Prix actuel : {{price}}€",
+      "placeholder": "Nouveau prix",
+      "cancel": "Annuler",
+      "validate": "Valider"
+    },
+    "refuseDialog": {
+      "title": "Refuser le rendez-vous",
+      "message": "Êtes-vous sûr de vouloir refuser ce rendez-vous ?",
+      "cancel": "Annuler",
+      "refuse": "Refuser"
+    },
+    "notifications": {
+      "newMessage": {
+        "title": "Nouveau message",
+        "body": "{{name}} vous a envoyé un message"
+      },
+      "accepted": {
+        "title": "Rendez-vous accepté",
+        "body": "{{name}} a accepté votre demande"
+      },
+      "refused": {
+        "title": "Rendez-vous refusé",
+        "body": "{{name}} a refusé votre demande"
+      },
+      "priceModified": {
+        "title": "Prix modifié",
+        "body": "{{name}} propose {{price}}€"
+      },
+      "missionComplete": {
+        "title": "Mission terminée",
+        "body": "La nounou a marqué la mission comme terminée. Veuillez procéder au paiement."
+      }
+    },
+    "success": {
+      "accepted": "Rendez-vous accepté",
+      "refused": "Rendez-vous refusé",
+      "priceModified": "Prix modifié",
+      "missionComplete": "Mission marquée comme terminée"
+    },
+    "errors": {
+      "sendMessage": "Erreur lors de l'envoi",
+      "accept": "Erreur lors de l'acceptation",
+      "refuse": "Erreur lors du refus",
+      "modifyPrice": "Erreur lors de la modification",
+      "invalidPrice": "Prix invalide",
+      "markComplete": "Erreur",
+      "loadingUser": "Erreur chargement utilisateur",
+      "loadingOtherUser": "Erreur chargement autre utilisateur",
+      "appointmentListener": "Erreur écoute appointment"
+    }
+  },
+  "nounouDetailsScreen": {
+    "header": {
+      "report": "Signaler"
+    },
+    "map": {
+      "interventionZone": "Zone d'intervention",
+      "aroundCity": "~1.5km autour de {{city}}"
+    },
+    "profile": {
+      "verified": "Vérifié",
+      "pro": "Pro",
+      "experience": "{{age}} ans d'expérience",
+      "initialLastname": "{{firstname}} {{initial}}."
+    },
+    "pricing": {
+      "title": "Tarification",
+      "perHour": "/ heure",
+      "negotiable": "💰 Tarif négociable selon durée"
+    },
+    "presentation": {
+      "title": "Présentation",
+      "noPresentation": "Cette nounou n'a pas encore ajouté de présentation personnelle."
+    },
+    "contact": {
+      "title": "Coordonnées",
+      "unlocked": "Mission en cours - Coordonnées déverrouillées",
+      "fullAddress": "Adresse complète",
+      "department": "Département",
+      "notProvided": "Non renseignée",
+      "notProvidedDepartment": "Non renseigné"
+    },
+    "info": {
+      "title": "Besoin de plus d'informations ?",
+      "message": "Contactez directement cette nounou après votre réservation pour discuter des détails de votre projet."
+    },
+    "actions": {
+      "reserve": "Réserver cette nounou",
+      "alreadyBooked": "Déjà réservée",
+      "loginToReserve": "Se connecter pour réserver",
+      "yourProfile": "Votre profil"
+    },
+    "errors": {
+      "notFound": {
+        "title": "Profil introuvable",
+        "message": "Cette nounou n'existe plus ou a été supprimée"
+      }
+    }
+  },
+  "payScreen": {
+    "header": {
+      "title": "Récapitulatif",
+      "subtitle": "Vérifiez les détails avant de payer"
+    },
+    "careDetails": {
+      "title": "Détails de la garde",
+      "nanny": "Nounou",
+      "dateAndTime": "Date et horaires",
+      "hours": "{{hours}}h",
+      "children": "Enfants",
+      "child": "{{count}} enfant",
+      "childrenPlural": "{{count}} enfants",
+      "childrenWithAges": "{{count}} enfant ({{ages}})",
+      "childrenPluralWithAges": "{{count}} enfants ({{ages}})",
+      "specialInstructions": "Instructions spéciales",
+      "notAvailable": "N/A"
+    },
+    "paymentDetails": {
+      "title": "Détails du paiement",
+      "priceExcludingTax": "Prix HT",
+      "vat": "TVA ({{percent}}%)",
+      "serviceFee": "Frais de service ({{percent}}%)",
+      "totalIncludingTax": "Total TTC"
+    },
+    "security": {
+      "title": "Paiement sécurisé",
+      "message": "Vos données sont protégées par Stripe"
+    },
+    "buttons": {
+      "pay": "Payer {{amount}} €"
+    },
+    "success": {
+      "title": "Paiement réussi",
+      "systemMessage": "Paiement effectué avec succès, mission terminée"
+    },
+    "notifications": {
+      "paymentReceived": {
+        "title": "Paiement reçu",
+        "body": "Le client a effectué le paiement"
+      }
+    },
+    "errors": {
+      "appointmentNotFound": "Rendez-vous introuvable",
+      "userNotFound": "Client ou nounou introuvable",
+      "loadingError": "Erreur de chargement du paiement",
+      "jsonParseError": "Erreur de parsing JSON: {{message}}",
+      "paymentError": "Erreur",
+      "emailError": "Erreur envoi mails post-paiement"
+    }
+  },
+
+  "resetPassword": {
+    "header": {
+      "title": "Réinitialiser le mot de passe"
+    },
+    "instructions": "Entrez le code reçu par email, votre ancien mot de passe et votre nouveau mot de passe",
+    "fields": {
+      "verificationCode": {
+        "label": "Code de vérification *",
+        "placeholder": "123456"
+      },
+      "oldPassword": {
+        "label": "Ancien mot de passe *",
+        "placeholder": "Ancien mot de passe"
+      },
+      "newPassword": {
+        "label": "Nouveau mot de passe *",
+        "placeholder": "Minimum 6 caractères"
+      },
+      "confirmPassword": {
+        "label": "Confirmer le mot de passe *",
+        "placeholder": "Confirmer le mot de passe"
+      }
+    },
+    "buttons": {
+      "reset": "Réinitialiser",
+      "back": "Retour"
+    },
+    "validation": {
+      "fieldsRequired": {
+        "title": "Champs requis",
+        "message": "Veuillez remplir tous les champs."
+      },
+      "invalidCode": {
+        "title": "Code invalide",
+        "message": "Le code de vérification est incorrect."
+      },
+      "passwordTooShort": {
+        "title": "Mot de passe trop court",
+        "message": "Le mot de passe doit contenir au moins 6 caractères."
+      },
+      "passwordMismatch": {
+        "title": "Mots de passe différents",
+        "message": "Les mots de passe ne correspondent pas."
+      },
+      "samePassword": {
+        "title": "Même mot de passe",
+        "message": "Le nouveau mot de passe doit être différent de l'ancien."
+      }
+    },
+    "success": {
+      "title": "Mot de passe modifié",
+      "message": "Votre mot de passe a été réinitialisé avec succès."
+    },
+    "errors": {
+      "title": "Erreur",
+      "default": "Impossible de réinitialiser le mot de passe.",
+      "wrongPassword": "L'ancien mot de passe est incorrect.",
+      "tooManyRequests": "Trop de tentatives. Réessayez plus tard.",
+      "resetError": "Erreur réinitialisation"
+    }
+  },
+  "passwordPage": {
+    "header": {
+      "title": "Connexion"
+    },
+    "savedAccountModal": {
+      "welcome": "Bon retour !",
+      "login": "Se connecter",
+      "enterPassword": "Entrer le mot de passe",
+      "differentAccount": "Utiliser un autre compte"
+    },
+    "fields": {
+      "email": {
+        "label": "Email",
+        "placeholder": "exemple@email.com"
+      },
+      "password": {
+        "label": "Mot de passe",
+        "placeholder": "Entrez votre mot de passe",
+        "forgot": "Oublié ?"
+      }
+    },
+    "buttons": {
+      "login": "Se connecter",
+      "createAccount": "Créer un compte",
+      "or": "ou"
+    },
+    "legal": {
+      "text": "En continuant, vous acceptez les",
+      "terms": "Conditions d'utilisation",
+      "and": "et la",
+      "privacy": "Politique de confidentialité"
+    },
+    "validation": {
+      "invalidEmail": {
+        "title": "Erreur",
+        "message": "Veuillez entrer une adresse e-mail valide."
+      },
+      "passwordTooShort": {
+        "title": "Erreur",
+        "message": "Le mot de passe doit faire au moins 6 caractères."
+      },
+      "invalidCredentials": {
+        "title": "Erreur",
+        "message": "L'adresse e-mail ou le mot de passe est invalide."
+      },
+      "genericError": {
+        "title": "Erreur",
+        "message": "Une erreur est survenue. Veuillez réessayer."
+      }
+    },
+    "errors": {
+      "savedAccountLogin": {
+        "title": "Erreur de connexion",
+        "message": "Impossible de se connecter avec le compte enregistré."
+      },
+      "checkSavedAccount": "Erreur lors de la vérification du compte"
+    }
+  },
+  "registerPage": {
+    "header": {
+      "title": "Créer un compte",
+      "subtitle": "Rejoignez-nous en quelques étapes"
+    },
+    "roleSelection": {
+      "label": "Je m'inscris en tant que",
+      "parent": {
+        "title": "Parent",
+        "description": "Je cherche une nounou"
+      },
+      "nanny": {
+        "title": "Nounou",
+        "description": "Je propose mes services"
+      }
+    },
+    "fields": {
+      "email": {
+        "label": "Email",
+        "placeholder": "exemple@email.com"
+      },
+      "password": {
+        "label": "Mot de passe",
+        "placeholder": "Mot de passe sécurisé"
+      },
+      "confirmPassword": {
+        "label": "Confirmer le mot de passe",
+        "placeholder": "Confirmez votre mot de passe"
+      }
+    },
+    "validation": {
+      "minLength": "Au moins 8 caractères",
+      "maxLength": "Maximum 128 caractères",
+      "hasLowerCase": "Une lettre minuscule",
+      "hasNumber": "Un chiffre",
+      "passwordsMatch": "Les mots de passe correspondent",
+      "fillAllFields": "Veuillez remplir tous les champs pour continuer"
+    },
+    "buttons": {
+      "createAccount": "Créer mon compte"
+    },
+    "footer": {
+      "alreadyHaveAccount": "Vous avez déjà un compte ?",
+      "login": "Se connecter"
+    },
+    "errors": {
+      "roleRequired": {
+        "title": "Rôle requis",
+        "message": "Veuillez sélectionner si vous êtes parent ou nounou."
+      },
+      "invalidEmail": {
+        "title": "Email invalide",
+        "message": "Veuillez entrer une adresse email valide."
+      },
+      "passwordTooShort": {
+        "title": "Mot de passe trop court",
+        "message": "Le mot de passe doit contenir au moins 8 caractères."
+      },
+      "passwordTooLong": {
+        "title": "Mot de passe trop long",
+        "message": "Le mot de passe ne peut pas dépasser 128 caractères."
+      },
+      "passwordMismatch": {
+        "title": "Mots de passe différents",
+        "message": "Les mots de passe ne correspondent pas. Vérifiez votre saisie."
+      },
+      "incompleteForm": {
+        "title": "Formulaire incomplet",
+        "message": "Veuillez remplir tous les champs correctement."
+      },
+      "firebase": {
+        "emailAlreadyInUse": "Cette adresse email est déjà utilisée. Essayez de vous connecter.",
+        "invalidEmail": "L'adresse email n'est pas valide.",
+        "operationNotAllowed": "L'inscription est temporairement désactivée. Contactez le support.",
+        "weakPassword": "Le mot de passe est trop faible. Utilisez au moins 8 caractères.",
+        "networkRequestFailed": "Problème de connexion internet. Vérifiez votre connexion.",
+        "tooManyRequests": "Trop de tentatives. Veuillez réessayer dans quelques minutes.",
+        "default": "Une erreur s'est produite lors de l'inscription. Réessayez."
+      },
+      "registration": "Erreur d'inscription",
+      "emailSending": "Erreur envoi email"
+    },
+    "success": {
+      "title": "✅ Inscription réussie !",
+      "parent": "Bienvenue en tant que parent ! Un email de vérification vous a été envoyé.",
+      "nanny": "Bienvenue en tant que nounou ! Un email de vérification vous a été envoyé."
+    }
+  },
+  "connectionError": {
+    "title": "Pas de connexion",
+    "subtitle": "Votre appareil n'est pas connecté à Internet",
+    "checkConnection": "Vérifiez votre connexion :",
+    "tips": {
+      "wifi": "Vérifiez que le Wi-Fi est activé",
+      "mobileData": "Vérifiez vos données mobiles (4G/5G)",
+      "airplaneMode": "Désactivez le mode avion"
+    },
+    "retry": "Réessayer"
+  },
+  "loader": {
+    "loading": "Chargement..."
+  },
+
+  "loadingMap": "Chargement de la carte...",
+  "searchRadius": "Rayon de recherche",
+  "result": "résultat",
+  "incompleteProfile": "Profil incomplet",
+  "completePersonalInfo": "Veuillez compléter vos informations personnelles.",
+  "locationRequired": "Localisation requise",
+  "enterCompleteAddress": "Renseignez votre adresse complète.",
+  "phoneRequired": "Téléphone requis",
+  "addPhoneNumber": "Ajoutez votre numéro de téléphone.",
+  "photoRequired": "Photo requise",
+  "addProfilePhoto": "Ajoutez une photo de profil.",
+  "completePaymentInfo": "Complétez vos informations de paiement.",
+  "completeFirstLastName": "Veuillez compléter votre nom et prénom.",
+  "cannotVerifyProfile": "Impossible de vérifier votre profil.",
+  "permissionRequired": "Permission requise",
+  "enableLocationSettings": "Activez la géolocalisation dans les paramètres",
+  "cannotLocateYou": "Impossible de vous localiser",
+  "showingParisDefault": "Affichage de Paris par défaut",
+  "loadingError": "Erreur de chargement",
+  "cannotLoadNannies": "Impossible de charger les nounous",
+  "enableYourLocation": "Activez votre position",
+  "toSeeNanniesNearYou": "Pour voir les nounous près de vous",
+  "searchCityPostalCode": "Rechercher une ville, code postal...",
+  "nannies": "Nounous",
+  "nanny": "nounou",
+  "available": "disponible",
+  "noNanny": "Aucune nounou",
+  "loadingNannies": "Chargement des nounous...",
+  "noNannyFound": "Aucune nounou trouvée",
+  "tryExpandingSearch": "Essayez d'élargir votre zone de recherche",
+  "expandTo": "Élargir à"
 }

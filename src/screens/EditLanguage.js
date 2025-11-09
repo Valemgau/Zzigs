@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   ActivityIndicator,
   FlatList,
-  Image,
   ScrollView,
 } from "react-native";
 import { auth, db } from "../../config/firebase";
@@ -17,6 +16,7 @@ import { showMessage } from "react-native-flash-message";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
 import Loader from "../components/Loader";
+import { Image } from "expo-image";
 
 const LANGUAGES = [
   {
@@ -51,7 +51,6 @@ const LANGUAGES = [
   },
 ];
 
-
 export default function EditLanguage({ navigation }) {
   const { t, i18n } = useTranslation();
   const user = auth.currentUser;
@@ -74,7 +73,10 @@ export default function EditLanguage({ navigation }) {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const data = docSnap.data();
-            if (data.language && LANGUAGES.find((l) => l.code === data.language)) {
+            if (
+              data.language &&
+              LANGUAGES.find((l) => l.code === data.language)
+            ) {
               setSelectedLang(data.language);
             }
           }
@@ -91,13 +93,13 @@ export default function EditLanguage({ navigation }) {
 
   const handleSelectLang = async (code) => {
     if (code === selectedLang) return;
-    
+
     setUpdating(true);
-    
+
     try {
       setSelectedLang(code);
       i18n.changeLanguage(code);
-      
+
       if (user) {
         await updateDoc(doc(db, "users", user.uid), {
           language: code,
@@ -111,6 +113,7 @@ export default function EditLanguage({ navigation }) {
         type: "success",
         icon: "success",
       });
+      navigation.goBack();
     } catch (error) {
       console.error("Erreur changement langue:", error);
       showMessage({
@@ -130,11 +133,9 @@ export default function EditLanguage({ navigation }) {
 
   const renderItem = ({ item, index }) => {
     const isSelected = item.code === selectedLang;
-    
+
     return (
-      <Animated.View
-        entering={FadeInDown.duration(300).delay(index * 50)}
-      >
+      <Animated.View entering={FadeInDown.duration(300).delay(index * 50)}>
         <Pressable
           onPress={() => handleSelectLang(item.code)}
           disabled={updating}
@@ -158,7 +159,7 @@ export default function EditLanguage({ navigation }) {
               <Image
                 source={item.flag}
                 style={{ width: 32, height: 24 }}
-                resizeMode="contain"
+                contentFit="contain"
               />
             </View>
 
@@ -204,10 +205,7 @@ export default function EditLanguage({ navigation }) {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-5 pt-6 pb-8">
           <Animated.View
             entering={FadeInDown.duration(300)}
@@ -254,25 +252,7 @@ export default function EditLanguage({ navigation }) {
         </View>
       </ScrollView>
 
-      {updating && (
-        <View
-          className="absolute inset-0 items-center justify-center"
-          style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
-        >
-          <View className="bg-white px-8 py-6">
-            <ActivityIndicator size="large" color={COLORS.primary} />
-            <Text
-              className="text-sm mt-3"
-              style={{
-                fontFamily: "OpenSans_600SemiBold",
-                color: COLORS.primary,
-              }}
-            >
-              {t("updating")}
-            </Text>
-          </View>
-        </View>
-      )}
+      {updating && <Loader />}
     </SafeAreaView>
   );
 }

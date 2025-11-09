@@ -14,10 +14,7 @@ import {
 import { COLORS } from "../styles/colors";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { auth } from "../../config/firebase";
-import { 
-  EmailAuthProvider, 
-  reauthenticateWithCredential 
-} from "firebase/auth";
+import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 import { showMessage } from "react-native-flash-message";
 import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "@env";
@@ -31,7 +28,8 @@ export default function DeleteAccountScreen({ navigation }) {
   const [customReason, setCustomReason] = useState("");
   const [sending, setSending] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [confirmationModalVisible, setConfirmationModalVisible] = useState(false);
+  const [confirmationModalVisible, setConfirmationModalVisible] =
+    useState(false);
 
   const handleSelectReason = (reason) => {
     setSelectedReason(reason);
@@ -40,7 +38,10 @@ export default function DeleteAccountScreen({ navigation }) {
   };
 
   const validateAndShowConfirmation = () => {
-    if (!selectedReason || (selectedReason === t("other") && !customReason.trim())) {
+    if (
+      !selectedReason ||
+      (selectedReason === t("other") && !customReason.trim())
+    ) {
       showMessage({
         message: t("error"),
         description: t("selectReasonError"),
@@ -58,24 +59,23 @@ export default function DeleteAccountScreen({ navigation }) {
     setSending(true);
 
     try {
-      await fetch(`${API_URL}/goodbye.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: auth.currentUser?.email,
-          reason: selectedReason === t("other") ? customReason.trim() : selectedReason,
-          deletedAt: new Date().toISOString(),
-        }),
-      });
-    } catch (e) {
-      console.warn("API goodbye error:", e);
-    }
-
-    try {
       const user = auth.currentUser;
       if (!user) throw new Error("No user logged in");
 
-      await user.delete();
+      await user.delete().then(async () => {
+        await fetch(`${API_URL}/goodbye.php`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: auth.currentUser?.email,
+            reason:
+              selectedReason === t("other")
+                ? customReason.trim()
+                : selectedReason,
+            deletedAt: new Date().toISOString(),
+          }),
+        });
+      });
 
       showMessage({
         message: t("accountDeleted"),
@@ -84,7 +84,6 @@ export default function DeleteAccountScreen({ navigation }) {
         icon: "success",
         duration: 4000,
       });
-    
     } catch (e) {
       if (e.code === "auth/requires-recent-login") {
         setSending(false);
@@ -96,12 +95,12 @@ export default function DeleteAccountScreen({ navigation }) {
             setSending(true);
             try {
               const cred = EmailAuthProvider.credential(
-                auth.currentUser.email, 
+                auth.currentUser.email,
                 password
               );
               await reauthenticateWithCredential(auth.currentUser, cred);
               await auth.currentUser.delete();
-              
+
               showMessage({
                 message: t("accountDeleted"),
                 description: t("accountDeletedDesc"),
@@ -109,7 +108,18 @@ export default function DeleteAccountScreen({ navigation }) {
                 icon: "success",
                 duration: 4000,
               });
-              
+              await fetch(`${API_URL}/goodbye.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  email: auth.currentUser?.email,
+                  reason:
+                    selectedReason === t("other")
+                      ? customReason.trim()
+                      : selectedReason,
+                  deletedAt: new Date().toISOString(),
+                }),
+              });
             } catch (error) {
               showMessage({
                 message: t("error"),
@@ -162,7 +172,12 @@ export default function DeleteAccountScreen({ navigation }) {
         </View>
 
         <View className="bg-red-50 border border-red-200 rounded p-4 mb-6 flex-row">
-          <Ionicons name="warning" size={24} color="#EF4444" style={{ marginRight: 12 }} />
+          <Ionicons
+            name="warning"
+            size={24}
+            color="#EF4444"
+            style={{ marginRight: 12 }}
+          />
           <View className="flex-1">
             <Text
               className="text-red-800 text-sm mb-1"
@@ -211,7 +226,7 @@ export default function DeleteAccountScreen({ navigation }) {
               placeholder={t("specifyReasonPlaceholder")}
               placeholderTextColor="#9CA3AF"
               className="border border-gray-300 rounded py-3 px-4 bg-white text-primary text-base min-h-[100px]"
-              style={{ 
+              style={{
                 fontFamily: "OpenSans_400Regular",
                 textAlignVertical: "top",
               }}
@@ -251,13 +266,19 @@ export default function DeleteAccountScreen({ navigation }) {
 
         <Pressable
           onPress={validateAndShowConfirmation}
-          disabled={sending || !selectedReason || (selectedReason === t("other") && !customReason.trim())}
+          disabled={
+            sending ||
+            !selectedReason ||
+            (selectedReason === t("other") && !customReason.trim())
+          }
           className={`rounded py-4 items-center flex-row justify-center ${
-            sending || !selectedReason || (selectedReason === t("other") && !customReason.trim())
+            sending ||
+            !selectedReason ||
+            (selectedReason === t("other") && !customReason.trim())
               ? "bg-red-400"
               : "bg-red-600"
           }`}
-          style={{ 
+          style={{
             shadowColor: "#DC2626",
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.3,
@@ -269,7 +290,12 @@ export default function DeleteAccountScreen({ navigation }) {
             <ActivityIndicator color="#fff" />
           ) : (
             <>
-              <Ionicons name="trash-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+              <Ionicons
+                name="trash-outline"
+                size={20}
+                color="#fff"
+                style={{ marginRight: 8 }}
+              />
               <Text
                 className="text-white text-base"
                 style={{ fontFamily: "OpenSans_700Bold" }}
@@ -335,9 +361,11 @@ export default function DeleteAccountScreen({ navigation }) {
                     style={{
                       paddingVertical: 16,
                       paddingHorizontal: 16,
-                      borderBottomColor: i < reasons.length - 1 ? "#F3F4F6" : "transparent",
+                      borderBottomColor:
+                        i < reasons.length - 1 ? "#F3F4F6" : "transparent",
                       borderBottomWidth: i < reasons.length - 1 ? 1 : 0,
-                      backgroundColor: selectedReason === reason ? "#F0F9FF" : "transparent",
+                      backgroundColor:
+                        selectedReason === reason ? "#F0F9FF" : "transparent",
                     }}
                     onPress={() => handleSelectReason(reason)}
                   >
@@ -346,13 +374,20 @@ export default function DeleteAccountScreen({ navigation }) {
                         style={{
                           fontFamily: "OpenSans_400Regular",
                           fontSize: 16,
-                          color: selectedReason === reason ? COLORS.primary : "#374151",
+                          color:
+                            selectedReason === reason
+                              ? COLORS.primary
+                              : "#374151",
                         }}
                       >
                         {reason}
                       </Text>
                       {selectedReason === reason && (
-                        <Ionicons name="checkmark-circle" size={22} color={COLORS.primary} />
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={22}
+                          color={COLORS.primary}
+                        />
                       )}
                     </View>
                   </TouchableOpacity>
@@ -362,7 +397,11 @@ export default function DeleteAccountScreen({ navigation }) {
           </TouchableOpacity>
         </Modal>
 
-        <Modal visible={confirmationModalVisible} transparent animationType="fade">
+        <Modal
+          visible={confirmationModalVisible}
+          transparent
+          animationType="fade"
+        >
           <View
             style={{
               flex: 1,
@@ -407,7 +446,7 @@ export default function DeleteAccountScreen({ navigation }) {
                 <Pressable
                   onPress={handleDeleteAccount}
                   className="bg-red-600 rounded py-4 items-center mb-2"
-                  style={{ 
+                  style={{
                     shadowColor: "#DC2626",
                     shadowOffset: { width: 0, height: 2 },
                     shadowOpacity: 0.3,

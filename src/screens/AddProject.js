@@ -298,7 +298,7 @@ export default function AddProject() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <KeyboardAwareScrollView
-        keyboardDismissMode="on-drag"
+        keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
         enableOnAndroid
         extraHeight={200}

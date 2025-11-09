@@ -27,7 +27,7 @@ export default function EditLocation({ navigation, route }) {
   const { newProfile } = route?.params || {};
   const { t } = useTranslation();
   const user = auth.currentUser;
-  
+
   const [fields, setFields] = useState({
     address: "",
     postalCode: "",
@@ -84,7 +84,7 @@ export default function EditLocation({ navigation, route }) {
       const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
         search
       )}&types=address&language=fr&components=country:FR&key=${GOOGLE_API_KEY}`;
-      
+
       try {
         const res = await fetch(url);
         const data = await res.json();
@@ -105,11 +105,11 @@ export default function EditLocation({ navigation, route }) {
 
   const fetchFullAddress = async (place_id) => {
     const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=address_component,formatted_address&language=fr&key=${GOOGLE_API_KEY}`;
-    
+
     try {
       const res = await fetch(url);
       const data = await res.json();
-      
+
       let fullAddress = data?.result?.formatted_address || "";
       let city = "";
       let postalCode = "";
@@ -117,7 +117,10 @@ export default function EditLocation({ navigation, route }) {
 
       if (data?.result?.address_components) {
         for (let comp of data.result.address_components) {
-          if (comp.types.includes("locality") || comp.types.includes("postal_town")) {
+          if (
+            comp.types.includes("locality") ||
+            comp.types.includes("postal_town")
+          ) {
             city = comp.long_name;
           }
           if (comp.types.includes("postal_code")) {
@@ -128,7 +131,7 @@ export default function EditLocation({ navigation, route }) {
           }
         }
       }
-      
+
       return { postalCode, city, department, address: fullAddress };
     } catch (error) {
       console.error("Erreur détails adresse:", error);
@@ -158,13 +161,14 @@ export default function EditLocation({ navigation, route }) {
           ...newFields,
           updatedAt: new Date(),
         });
-        
+
         showMessage({
           message: t("addressSaved"),
           description: t("locationUpdated"),
           type: "success",
           icon: "success",
         });
+        navigation.goBack()
       } catch (error) {
         console.error("Erreur sauvegarde:", error);
         showMessage({
@@ -181,7 +185,11 @@ export default function EditLocation({ navigation, route }) {
   };
 
   const handleManualSave = async () => {
-    if (!fields.address.trim() || !fields.postalCode.trim() || !fields.city.trim()) {
+    if (
+      !fields.address.trim() ||
+      !fields.postalCode.trim() ||
+      !fields.city.trim()
+    ) {
       showMessage({
         message: t("requiredFields"),
         description: t("requiredFieldsDesc"),
@@ -192,7 +200,7 @@ export default function EditLocation({ navigation, route }) {
     }
 
     setUpdating(true);
-    
+
     try {
       await updateDoc(doc(db, "users", user.uid), {
         address: fields.address.trim(),
@@ -208,7 +216,7 @@ export default function EditLocation({ navigation, route }) {
         type: "success",
         icon: "success",
       });
-
+      navigation.goBack();
     } catch (error) {
       console.error("Erreur sauvegarde:", error);
       showMessage({
@@ -232,7 +240,7 @@ export default function EditLocation({ navigation, route }) {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
       >
-        <ScrollView 
+        <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -261,7 +269,7 @@ export default function EditLocation({ navigation, route }) {
               >
                 {t("searchAddress")}
               </Text>
-              
+
               <View className="bg-white border border-gray-200">
                 <View className="flex-row items-center px-4 py-3 border-b border-gray-100">
                   <MaterialIcons name="search" size={20} color="#6B7280" />
@@ -347,7 +355,11 @@ export default function EditLocation({ navigation, route }) {
                       placeholder={t("addressPlaceholder")}
                       placeholderTextColor="#9CA3AF"
                       className="text-sm text-gray-900"
-                      style={{ fontFamily: "OpenSans_400Regular", height: 36, paddingVertical: 0 }}
+                      style={{
+                        fontFamily: "OpenSans_400Regular",
+                        height: 36,
+                        paddingVertical: 0,
+                      }}
                     />
                   </View>
                 </View>
@@ -370,7 +382,11 @@ export default function EditLocation({ navigation, route }) {
                       keyboardType="number-pad"
                       maxLength={5}
                       className="text-sm text-gray-900"
-                      style={{ fontFamily: "OpenSans_400Regular", height: 36, paddingVertical: 0 }}
+                      style={{
+                        fontFamily: "OpenSans_400Regular",
+                        height: 36,
+                        paddingVertical: 0,
+                      }}
                     />
                   </View>
                 </View>
@@ -391,7 +407,11 @@ export default function EditLocation({ navigation, route }) {
                       placeholder={t("cityPlaceholder")}
                       placeholderTextColor="#9CA3AF"
                       className="text-sm text-gray-900"
-                      style={{ fontFamily: "OpenSans_400Regular", height: 36, paddingVertical: 0 }}
+                      style={{
+                        fontFamily: "OpenSans_400Regular",
+                        height: 36,
+                        paddingVertical: 0,
+                      }}
                     />
                   </View>
                 </View>
@@ -412,49 +432,42 @@ export default function EditLocation({ navigation, route }) {
                       placeholder={t("departmentPlaceholder")}
                       placeholderTextColor="#9CA3AF"
                       className="text-sm text-gray-900"
-                      style={{ fontFamily: "OpenSans_400Regular", height: 36, paddingVertical: 0 }}
+                      style={{
+                        fontFamily: "OpenSans_400Regular",
+                        height: 36,
+                        paddingVertical: 0,
+                      }}
                     />
                   </View>
                 </View>
               </View>
             </Animated.View>
+            <View className="mt-10">
+              <Pressable
+                onPress={handleManualSave}
+                disabled={updating}
+                className="py-4 items-center flex-row justify-center"
+                style={{
+                  backgroundColor: updating ? "#D1D5DB" : COLORS.primary,
+                }}
+              >
+                {updating ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <MaterialIcons name="check" size={18} color="#fff" />
+                    <Text
+                      className="text-sm font-bold text-white ml-2 uppercase tracking-wider"
+                      style={{ fontFamily: "OpenSans_700Bold" }}
+                    >
+                      {newProfile ? t("continue") : t("save")}
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            </View>
           </View>
         </ScrollView>
-
-        <View
-          className="absolute bottom-0 left-0 right-0 px-5 py-4"
-          style={{
-            backgroundColor: "#fff",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 12,
-            elevation: 10,
-          }}
-        >
-          <Pressable
-            onPress={handleManualSave}
-            disabled={updating}
-            className="py-4 items-center flex-row justify-center"
-            style={{
-              backgroundColor: updating ? "#D1D5DB" : COLORS.primary,
-            }}
-          >
-            {updating ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <MaterialIcons name="check" size={18} color="#fff" />
-                <Text
-                  className="text-sm font-bold text-white ml-2 uppercase tracking-wider"
-                  style={{ fontFamily: "OpenSans_700Bold" }}
-                >
-                  {newProfile ? t("continue") : t("save")}
-                </Text>
-              </>
-            )}
-          </Pressable>
-        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

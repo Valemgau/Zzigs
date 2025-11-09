@@ -134,7 +134,7 @@ export default function ForgotPassword() {
               <Image
                 source={require("../../assets/logo.png")}
                 className="w-full h-full"
-                resizeMode="cover"
+                contentFit="cover"
               />
             </View>
           </Animated.View>

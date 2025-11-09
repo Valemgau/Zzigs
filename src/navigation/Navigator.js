@@ -14,13 +14,15 @@ import AddProject from "../screens/AddProject";
 import ProjectDetailsScreen from "../screens/ProjectDetailsScreen";
 import FaireOffreScreen from "../screens/FaireOffreScreen";
 import ReportProjectScreen from "../screens/ReportProjectScreen";
-import OffersListScreen from "../screens/OffersListScreen";
-import ReceivedOffersScreen from "../screens/ReceivedOffersScreen";
 import PayScreen from "../screens/PayScreen";
 import EditRole from "../screens/EditRole";
 import VerifyEmail from "../screens/Auth/VerifyEmail";
 import EditBankInfo from "../screens/EditBankInfo";
 import DeleteAccountScreen from "../screens/DeleteAccountScreen";
+import ChatListScreen from "../screens/ChatList";
+import ChatScreen from "../screens/ChatScreen";
+import Calendar from "../screens/Calendar";
+import SuccessPaymentScreen from "../screens/SuccessPaymentScreen";
 
 const Stack = createStackNavigator();
 
@@ -32,7 +34,7 @@ export default function Navigator({ userData }) {
       <Stack.Screen
         name="VerifyEmail"
         component={VerifyEmail}
-        options={{ title: "Valider l'adresse e-mail" }}
+        options={{ title: "" }}
       />
       <Stack.Screen name="ConfirmEmail" component={ConfirmEmail} />
       <Stack.Screen
@@ -43,43 +45,43 @@ export default function Navigator({ userData }) {
       <Stack.Screen
         name="EditRole"
         component={EditRole}
-        options={{ title: "Choisir un role" }}
+        options={{ title: "" }}
       />
       <Stack.Screen
         name="EditLocation"
         component={EditLocation}
-        options={{ title: "Modifier" }}
+        options={{ title: "" }}
       />
       <Stack.Screen
         name="EditBankInfo"
         component={EditBankInfo}
-        options={{ title: "Modifier" }}
+        options={{ title: "" }}
       />
       <Stack.Screen
         name="EditPhoneNumber"
         component={EditPhoneNumber}
-        options={{ title: "Modifier" }}
+        options={{ title: "" }}
       />
       <Stack.Screen
         name="EditLanguage"
         component={EditLanguage}
-        options={{ title: "Choisir la langue" }}
+        options={{ title: "" }}
       />
       <Stack.Screen
         initialParams={userData}
         name="ContactUs"
         component={ContactUs}
-        options={{ title: "Nous contacter" }}
+        options={{ title: "" }}
       />
       <Stack.Screen
         name="AddProject"
         component={AddProject}
-        options={{ title: "Ajouter un projet" }}
+        options={{ title: "" }}
       />
       <Stack.Screen
         name="SettingsScreen"
         component={SettingsScreen}
-        options={{ title: "Paramètres" }}
+        options={{ title: "" }}
       />
       <Stack.Screen
         name="DeleteAccountScreen"
@@ -89,12 +91,12 @@ export default function Navigator({ userData }) {
       <Stack.Screen
         name="ProjectDetailsScreen"
         component={ProjectDetailsScreen}
-        options={{ title: "Détails" }}
+        options={{ title: "" }}
       />
       <Stack.Screen
         name="ReportProjectScreen"
         component={ReportProjectScreen}
-        options={{ title: "Signaler" }}
+        options={{ title: "" }}
       />
       <Stack.Screen
         name="FaireOffreScreen"
@@ -103,20 +105,35 @@ export default function Navigator({ userData }) {
       />
 
       <Stack.Screen
-        name="OffersListScreen"
-        component={OffersListScreen}
-        options={{ title: "Offres envoyées" }}
-      />
-      <Stack.Screen
-        name="ReceivedOffersScreen"
-        component={ReceivedOffersScreen}
-        options={{ title: "Offres reçues" }}
-      />
-      <Stack.Screen
         name="PayScreen"
         component={PayScreen}
-        options={{ title: "Paiement" }}
+        options={{ title: "" }}
       />
+      <Stack.Screen
+        name="SuccessPaymentScreen"
+        component={SuccessPaymentScreen}
+        options={{ title: "", headerShown:false }}
+      />
+       <Stack.Screen
+        name="ChatListScreen"
+        component={ChatListScreen}
+        options={{ title: "" }}
+      />
+      <Stack.Screen
+        name="Calendar"
+        component={Calendar}
+        options={{ title: "" }}
+      />
+      <Stack.Screen
+        name="ChatScreen"
+        component={ChatScreen}
+        options={{ title: "", headerShown:false }}
+      />
+       {/* <Stack.Screen
+        name="ChatListScreen"
+        component={ChatListScreen}
+        options={{ title: "Paiement" }}
+      /> */}
       {/* Ajoute d'autres écrans ici */}
     </Stack.Navigator>
   );

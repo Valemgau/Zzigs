@@ -51,10 +51,10 @@ export default function EditPhoneNumber({ route }) {
           const phoneNumber = snap.data().phoneNumber || "";
           const normalized = normalizePhoneNumber(phoneNumber);
           setCurrentPhone(normalized);
-          
+
           if (normalized) {
             const { indicatif, phone } = extractIndicatifFromNumber(normalized);
-            setFields(prev => ({
+            setFields((prev) => ({
               ...prev,
               indicatif: indicatif,
               phone: phone,
@@ -196,7 +196,7 @@ export default function EditPhoneNumber({ route }) {
         { phoneNumber: finalPhone, updatedAt: new Date() },
         { merge: true }
       );
-      
+
       showMessage({
         message: t("phoneNumberSaved"),
         description: t("phoneNumberUpdated"),
@@ -233,235 +233,187 @@ export default function EditPhoneNumber({ route }) {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
-      >
-        <ScrollView 
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+   <SafeAreaView className="flex-1 bg-gray-50">
+  <KeyboardAvoidingView
+    behavior={Platform.OS === "ios" ? "padding" : undefined}
+    className="flex-1"
+  >
+    <ScrollView
+      className="flex-1"
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View className="px-5 pt-6 pb-32">
+        <Animated.View
+          entering={FadeInDown.duration(300)}
+          className="border-l-4 bg-gray-50 px-4 py-3 mb-8"
+          style={{ borderLeftColor: COLORS.secondary }}
         >
-          <View className="px-5 pt-6 pb-32">
-            <Animated.View
-              entering={FadeInDown.duration(300)}
-              className="border-l-4 bg-gray-50 px-4 py-3 mb-8"
-              style={{ borderLeftColor: COLORS.secondary }}
-            >
-              <Text
-                className="text-sm text-gray-700 leading-5"
-                style={{ fontFamily: "OpenSans_400Regular" }}
-              >
-                {t("phoneInfo")}
-              </Text>
-            </Animated.View>
+          <Text
+            className="text-sm text-gray-700 leading-5"
+            style={{ fontFamily: "OpenSans_400Regular" }}
+          >
+            {t("phoneInfo")}
+          </Text>
+        </Animated.View>
 
-            {currentPhone && (
-              <Animated.View
-                entering={FadeInDown.duration(300).delay(50)}
-                className="mb-6"
-              >
-                <View className="flex-row items-center bg-white border border-gray-200 px-4 py-3">
-                  <MaterialIcons name="phone" size={18} color="#6B7280" />
-                  <View className="ml-3 flex-1">
-                    <Text
-                      className="text-xs text-gray-500 mb-1 uppercase tracking-wider"
-                      style={{ fontFamily: "OpenSans_600SemiBold" }}
-                    >
-                      {t("currentNumber")}
-                    </Text>
-                    <Text
-                      className="text-sm text-gray-900"
-                      style={{ fontFamily: "OpenSans_400Regular" }}
-                    >
-                      {currentPhone}
-                    </Text>
-                  </View>
-                </View>
-              </Animated.View>
-            )}
-
-            <Animated.View
-              entering={FadeInDown.duration(300).delay(100)}
-              className="mb-5"
-            >
-              <Text
-                className="text-xs text-gray-500 mb-2 uppercase tracking-wider"
-                style={{ fontFamily: "OpenSans_600SemiBold" }}
-              >
-                {t("countryCode")}
-              </Text>
-              <View className="bg-white border border-gray-200 px-4 py-3">
-                <TextInput
-                  value={fields.indicatif}
-                  onChangeText={(v) => handleFieldChange("indicatif", v)}
-                  keyboardType="phone-pad"
-                  placeholder="+33"
-                  placeholderTextColor="#9CA3AF"
-                  maxLength={5}
-                  className="text-sm text-gray-900"
-                  style={{ 
-                    fontFamily: "OpenSans_400Regular", 
-                    height: 36,
-                    paddingVertical: 0,
-                  }}
-                />
-              </View>
-              <View className="flex-row flex-wrap mt-2 gap-2">
-                {INDICATIFS.map((ind) => (
-                  <Pressable
-                    key={ind.code}
-                    onPress={() => handleFieldChange("indicatif", ind.code)}
-                    className="px-3 py-1 bg-gray-100 border border-gray-200"
-                    style={{
-                      backgroundColor: fields.indicatif === ind.code 
-                        ? COLORS.primary + "15" 
-                        : "#F3F4F6",
-                    }}
-                  >
-                    <Text
-                      className="text-xs"
-                      style={{ 
-                        fontFamily: "OpenSans_600SemiBold",
-                        color: fields.indicatif === ind.code 
-                          ? COLORS.primary 
-                          : "#6B7280",
-                      }}
-                    >
-                      {ind.code} {ind.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </Animated.View>
-
-            <Animated.View
-              entering={FadeInDown.duration(300).delay(150)}
-              className="mb-5"
-            >
-              <Text
-                className="text-xs text-gray-500 mb-2 uppercase tracking-wider"
-                style={{ fontFamily: "OpenSans_600SemiBold" }}
-              >
-                {t("phoneNumber")} *
-              </Text>
-              <View className="bg-white border border-gray-200 px-4 py-3">
-                <TextInput
-                  value={fields.phone}
-                  onChangeText={(v) => handleFieldChange("phone", v)}
-                  keyboardType="number-pad"
-                  maxLength={16}
-                  placeholder={t("phoneNumberPlaceholder")}
-                  placeholderTextColor="#9CA3AF"
-                  className="text-sm text-gray-900"
-                  style={{ 
-                    fontFamily: "OpenSans_400Regular", 
-                    height: 36,
-                    paddingVertical: 0,
-                  }}
-                />
-              </View>
-            </Animated.View>
-
-            {fields.phone.trim().length > 0 && (
-              <Animated.View
-                entering={FadeInDown.duration(300).delay(200)}
-                className="mb-5"
-              >
+        {currentPhone && (
+          <Animated.View
+            entering={FadeInDown.duration(300).delay(50)}
+            className="mb-6"
+          >
+            <View className="flex-row items-center bg-white border border-gray-200 px-4 py-3">
+              <MaterialIcons name="phone" size={18} color="#6B7280" />
+              <View className="ml-3 flex-1">
                 <Text
-                  className="text-xs text-gray-500 mb-2 uppercase tracking-wider"
+                  className="text-xs text-gray-500 mb-1 uppercase tracking-wider"
                   style={{ fontFamily: "OpenSans_600SemiBold" }}
                 >
-                  {t("confirmNumber")} *
+                  {t("currentNumber")}
                 </Text>
-                <View className="bg-white border border-gray-200 px-4 py-3">
-                  <TextInput
-                    value={fields.confirmPhone}
-                    onChangeText={(v) => handleFieldChange("confirmPhone", v)}
-                    keyboardType="number-pad"
-                    maxLength={16}
-                    placeholder={t("phoneNumberPlaceholder")}
-                    placeholderTextColor="#9CA3AF"
-                    className="text-sm text-gray-900"
-                    style={{ 
-                      fontFamily: "OpenSans_400Regular", 
-                      height: 36,
-                      paddingVertical: 0,
-                    }}
-                  />
-                </View>
-                {fields.confirmPhone.length > 0 && (
-                  <View className="flex-row items-center mt-2">
-                    <MaterialIcons
-                      name={
-                        fields.phone === fields.confirmPhone
-                          ? "check-circle"
-                          : "error"
-                      }
-                      size={16}
-                      color={
-                        fields.phone === fields.confirmPhone
-                          ? "#10B981"
-                          : "#EF4444"
-                      }
-                    />
-                    <Text
-                      className="text-xs ml-2"
-                      style={{
-                        fontFamily: "OpenSans_400Regular",
-                        color:
-                          fields.phone === fields.confirmPhone
-                            ? "#10B981"
-                            : "#EF4444",
-                      }}
-                    >
-                      {fields.phone === fields.confirmPhone
-                        ? t("numbersMatch")
-                        : t("numbersNoMatch")}
-                    </Text>
-                  </View>
-                )}
-              </Animated.View>
-            )}
+                <Text
+                  className="text-sm text-gray-900"
+                  style={{ fontFamily: "OpenSans_400Regular" }}
+                >
+                  {currentPhone}
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
+        )}
 
-            {fields.phone.trim().length > 0 && (
-              <Animated.View
-                entering={FadeInDown.duration(300).delay(250)}
-                className="bg-blue-50 border-l-4 px-4 py-3"
-                style={{ borderLeftColor: COLORS.primary }}
-              >
-                <Text
-                  className="text-xs text-gray-600 mb-1 uppercase tracking-wider"
-                  style={{ fontFamily: "OpenSans_600SemiBold" }}
-                >
-                  {t("preview")}
-                </Text>
-                <Text
-                  className="text-base font-semibold"
-                  style={{
-                    fontFamily: "OpenSans_700Bold",
-                    color: COLORS.primary,
-                  }}
-                >
-                  {fields.indicatif}{fields.phone}
-                </Text>
-              </Animated.View>
-            )}
+        <Animated.View
+          entering={FadeInDown.duration(300).delay(100)}
+          className="mb-5"
+        >
+          <Text
+            className="text-xs text-gray-500 mb-2 uppercase tracking-wider"
+            style={{ fontFamily: "OpenSans_600SemiBold" }}
+          >
+            {t("phoneNumber")} *
+          </Text>
+          <View className="flex-row gap-2">
+            <View className="bg-white border border-gray-200 px-4 py-3" style={{ width: 80 }}>
+              <TextInput
+                value={fields.indicatif}
+                onChangeText={(v) => handleFieldChange("indicatif", v)}
+                keyboardType="phone-pad"
+                placeholder="+33"
+                placeholderTextColor="#9CA3AF"
+                maxLength={5}
+                className="text-sm text-gray-900"
+                style={{
+                  fontFamily: "OpenSans_400Regular",
+                  height: 36,
+                  paddingVertical: 0,
+                }}
+              />
+            </View>
+            <View className="flex-1 bg-white border border-gray-200 px-4 py-3">
+              <TextInput
+                value={fields.phone}
+                onChangeText={(v) => handleFieldChange("phone", v)}
+                keyboardType="number-pad"
+                maxLength={16}
+                placeholder={t("phoneNumberPlaceholder")}
+                placeholderTextColor="#9CA3AF"
+                className="text-sm text-gray-900"
+                style={{
+                  fontFamily: "OpenSans_400Regular",
+                  height: 36,
+                  paddingVertical: 0,
+                }}
+              />
+            </View>
           </View>
-        </ScrollView>
+        </Animated.View>
 
-        <View
-          className="absolute bottom-0 left-0 right-0 px-5 py-4"
-          style={{
-            backgroundColor: "#fff",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.1,
-            shadowRadius: 12,
-            elevation: 10,
-          }}
-        >
+        {fields.phone.trim().length > 0 && (
+          <Animated.View
+            entering={FadeInDown.duration(300).delay(200)}
+            className="mb-5"
+          >
+            <Text
+              className="text-xs text-gray-500 mb-2 uppercase tracking-wider"
+              style={{ fontFamily: "OpenSans_600SemiBold" }}
+            >
+              {t("confirmNumber")} *
+            </Text>
+            <View className="bg-white border border-gray-200 px-4 py-3">
+              <TextInput
+                value={fields.confirmPhone}
+                onChangeText={(v) => handleFieldChange("confirmPhone", v)}
+                keyboardType="number-pad"
+                maxLength={16}
+                placeholder={t("phoneNumberPlaceholder")}
+                placeholderTextColor="#9CA3AF"
+                className="text-sm text-gray-900"
+                style={{
+                  fontFamily: "OpenSans_400Regular",
+                  height: 36,
+                  paddingVertical: 0,
+                }}
+              />
+            </View>
+            {fields.confirmPhone.length > 0 && (
+              <View className="flex-row items-center mt-2">
+                <MaterialIcons
+                  name={
+                    fields.phone === fields.confirmPhone
+                      ? "check-circle"
+                      : "error"
+                  }
+                  size={16}
+                  color={
+                    fields.phone === fields.confirmPhone
+                      ? "#10B981"
+                      : "#EF4444"
+                  }
+                />
+                <Text
+                  className="text-xs ml-2"
+                  style={{
+                    fontFamily: "OpenSans_400Regular",
+                    color:
+                      fields.phone === fields.confirmPhone
+                        ? "#10B981"
+                        : "#EF4444",
+                  }}
+                >
+                  {fields.phone === fields.confirmPhone
+                    ? t("numbersMatch")
+                    : t("numbersNoMatch")}
+                </Text>
+              </View>
+            )}
+          </Animated.View>
+        )}
+
+        {fields.phone.trim().length > 0 && (
+          <Animated.View
+            entering={FadeInDown.duration(300).delay(250)}
+            className="bg-blue-50 border-l-4 px-4 py-3"
+            style={{ borderLeftColor: COLORS.primary }}
+          >
+            <Text
+              className="text-xs text-gray-600 mb-1 uppercase tracking-wider"
+              style={{ fontFamily: "OpenSans_600SemiBold" }}
+            >
+              {t("preview")}
+            </Text>
+            <Text
+              className="text-base font-semibold"
+              style={{
+                fontFamily: "OpenSans_700Bold",
+                color: COLORS.primary,
+              }}
+            >
+              {fields.indicatif}
+              {fields.phone}
+            </Text>
+          </Animated.View>
+        )}
+        <View className="mt-10">
           <Pressable
             disabled={saving}
             onPress={handleSave}
@@ -485,7 +437,10 @@ export default function EditPhoneNumber({ route }) {
             )}
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      </View>
+    </ScrollView>
+  </KeyboardAvoidingView>
+</SafeAreaView>
+
   );
 }

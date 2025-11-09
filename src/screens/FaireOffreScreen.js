@@ -239,7 +239,7 @@ export default function FaireOffreScreen() {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <KeyboardAwareScrollView
-        keyboardDismissMode="on-drag"
+        keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
         enableOnAndroid
         extraHeight={120}
@@ -280,122 +280,124 @@ export default function FaireOffreScreen() {
             </Text>
           </View>
 
-          <Animated.View 
+         <Animated.View 
+  style={{ 
+    transform: [{ scale: pulseAnim }],
+    marginBottom: 24,
+  }}
+>
+  <Pressable
+    onPress={() => priceInputRef.current?.focus()}
+    className="bg-white rounded-3xl overflow-hidden"
+    style={{
+      shadowColor: isFocusedPrice ? COLORS.primary : "#000",
+      shadowOffset: { width: 0, height: isFocusedPrice ? 8 : 4 },
+      shadowOpacity: isFocusedPrice ? 0.25 : 0.08,
+      shadowRadius: isFocusedPrice ? 16 : 8,
+      elevation: isFocusedPrice ? 12 : 4,
+      borderWidth: isFocusedPrice ? 2 : 0,
+      borderColor: isFocusedPrice ? COLORS.primary : "transparent",
+    }}
+  >
+    <View className="px-6 pt-6 pb-8">
+      <Text
+        style={{ fontFamily: "OpenSans_600SemiBold" }}
+        className="text-gray-600 text-sm mb-3 uppercase tracking-wider"
+      >
+        {t("yourOffer")}
+      </Text>
+      
+      <View className="flex-row items-baseline">
+        <TextInput
+          ref={priceInputRef}
+          keyboardType="decimal-pad"
+          value={price}
+          onChangeText={handlePriceChange}
+          onFocus={() => setIsFocusedPrice(true)}
+          onBlur={() => setIsFocusedPrice(false)}
+          placeholder=""
+          placeholderTextColor="#D1D5DB"
+          className="flex-1"
+          style={{ 
+            fontFamily: "OpenSans_700Bold",
+            fontSize: 56,
+            color: price ? COLORS.primary : "#D1D5DB",
+            padding: 0,
+            margin: 0,
+            includeFontPadding: false,
+            textAlignVertical: "center",
+            minHeight: 70,
+          }}
+          returnKeyType="done"
+          maxLength={10}
+        />
+        {!price && !isFocusedPrice && (
+          <Text
             style={{ 
-              transform: [{ scale: pulseAnim }],
-              marginBottom: 24,
+              fontFamily: "OpenSans_700Bold",
+              fontSize: 56,
+              color: "#D1D5DB",
+              position: "absolute",
+              left: 0,
             }}
           >
-            <View
-              className="bg-white rounded-3xl overflow-hidden"
+            0
+          </Text>
+        )}
+        <Text
+          style={{ 
+            fontFamily: "OpenSans_700Bold",
+            fontSize: 48,
+            color: price ? COLORS.primary : "#D1D5DB",
+            marginLeft: 8,
+            paddingBottom: 4,
+          }}
+        >
+          €
+        </Text>
+      </View>
+
+      {!price && (
+        <View className="flex-row mt-4 space-x-2">
+          {["50", "100", "200", "500"].map((suggestion) => (
+            <Pressable
+              key={suggestion}
+              onPress={() => setPrice(suggestion)}
+              className="bg-gray-100 rounded-full px-4 py-2 mr-2"
               style={{
-                shadowColor: isFocusedPrice ? COLORS.primary : "#000",
-                shadowOffset: { width: 0, height: isFocusedPrice ? 8 : 4 },
-                shadowOpacity: isFocusedPrice ? 0.25 : 0.08,
-                shadowRadius: isFocusedPrice ? 16 : 8,
-                elevation: isFocusedPrice ? 12 : 4,
-                borderWidth: isFocusedPrice ? 2 : 0,
-                borderColor: isFocusedPrice ? COLORS.primary : "transparent",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 2,
+                elevation: 1,
               }}
             >
-              <View className="px-6 pt-6 pb-8">
-                <Text
-                  style={{ fontFamily: "OpenSans_600SemiBold" }}
-                  className="text-gray-600 text-sm mb-3 uppercase tracking-wider"
-                >
-                  {t("yourOffer")}
-                </Text>
-                
-                <View className="flex-row items-baseline">
-                  <TextInput
-                    ref={priceInputRef}
-                    keyboardType="decimal-pad"
-                    value={price}
-                    onChangeText={handlePriceChange}
-                    onFocus={() => setIsFocusedPrice(true)}
-                    onBlur={() => setIsFocusedPrice(false)}
-                    placeholder=""
-                    placeholderTextColor="#D1D5DB"
-                    className="flex-1"
-                    style={{ 
-                      fontFamily: "OpenSans_700Bold",
-                      fontSize: 56,
-                      color: price ? COLORS.primary : "#D1D5DB",
-                      padding: 0,
-                      margin: 0,
-                      includeFontPadding: false,
-                      textAlignVertical: "center",
-                      minHeight: 70,
-                    }}
-                    returnKeyType="done"
-                    maxLength={10}
-                  />
-                  {!price && !isFocusedPrice && (
-                    <Text
-                      style={{ 
-                        fontFamily: "OpenSans_700Bold",
-                        fontSize: 56,
-                        color: "#D1D5DB",
-                        position: "absolute",
-                        left: 0,
-                      }}
-                    >
-                      0
-                    </Text>
-                  )}
-                  <Text
-                    style={{ 
-                      fontFamily: "OpenSans_700Bold",
-                      fontSize: 48,
-                      color: price ? COLORS.primary : "#D1D5DB",
-                      marginLeft: 8,
-                      paddingBottom: 4,
-                    }}
-                  >
-                    €
-                  </Text>
-                </View>
+              <Text
+                style={{ fontFamily: "OpenSans_600SemiBold" }}
+                className="text-gray-600 text-sm"
+              >
+                {suggestion}€
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
 
-                {!price && (
-                  <View className="flex-row mt-4 space-x-2">
-                    {["50", "100", "200", "500"].map((suggestion) => (
-                      <Pressable
-                        key={suggestion}
-                        onPress={() => setPrice(suggestion)}
-                        className="bg-gray-100 rounded-full px-4 py-2 mr-2"
-                        style={{
-                          shadowColor: "#000",
-                          shadowOffset: { width: 0, height: 1 },
-                          shadowOpacity: 0.05,
-                          shadowRadius: 2,
-                          elevation: 1,
-                        }}
-                      >
-                        <Text
-                          style={{ fontFamily: "OpenSans_600SemiBold" }}
-                          className="text-gray-600 text-sm"
-                        >
-                          {suggestion}€
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                )}
+      {price && parseFloat(price) > 0 && (
+        <View className="mt-4 flex-row items-center">
+          <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+          <Text
+            style={{ fontFamily: "OpenSans_600SemiBold" }}
+            className="text-green-600 text-sm ml-2"
+          >
+            {t("validAmount")}
+          </Text>
+        </View>
+      )}
+    </View>
+  </Pressable>
+</Animated.View>
 
-                {price && parseFloat(price) > 0 && (
-                  <View className="mt-4 flex-row items-center">
-                    <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                    <Text
-                      style={{ fontFamily: "OpenSans_600SemiBold" }}
-                      className="text-green-600 text-sm ml-2"
-                    >
-                      {t("validAmount")}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          </Animated.View>
 
           <View
             className="bg-white rounded-3xl overflow-hidden mb-6"

@@ -7,7 +7,6 @@ import {
   Linking,
   SafeAreaView,
   ImageBackground,
-  Image,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +14,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { useNavigation } from "@react-navigation/native";
 import { COLORS } from "../../styles/colors";
 import { useTranslation } from "react-i18next";
+import { Image } from "expo-image";
 
 export default function SignInScreen() {
   const [loading, setLoading] = useState(false);
@@ -49,7 +49,7 @@ export default function SignInScreen() {
               borderRadius: 50,
               marginBottom: 16,
             }}
-            resizeMode="contain"
+            contentFit="contain"
           />
           <Text
             style={{ fontFamily: "OpenSans_700Bold" }}

@@ -1,10 +1,10 @@
 {
   "expo": {
     "newArchEnabled": true,
-    "name": "zZigs",
+    "name": "Zzigs",
     "slug": "zzigs",
     "scheme": "zzigs",
-    "version": "1.1.0",
+    "version": "2.1.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "automatic",
@@ -48,7 +48,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.zzigs",
-      "versionCode": 3,
+      "versionCode": 6,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyAGiSiBGEsvDTKyfQxlhgD3BFKYHp1cYKQ"
@@ -110,7 +110,12 @@
           "enableGooglePay": true
         }
       ],
-      "expo-tracking-transparency",
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "Cette application souhaite vous proposer des recommandations personnalisées de couturiers et améliorer votre expérience."
+        }
+      ],
       "expo-notifications",
       "expo-web-browser"
     ],

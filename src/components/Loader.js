@@ -70,7 +70,7 @@ export default function Loader() {
           }}
         />
       </Animated.View>
-      <Text
+      {/* <Text
         style={{
           fontFamily: "OpenSans_700Bold",
           color: COLORS.primary,
@@ -79,7 +79,7 @@ export default function Loader() {
         }}
       >
         Chargement...
-      </Text>
+      </Text> */}
     </View>
   );
 }
