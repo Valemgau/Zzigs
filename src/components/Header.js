@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Pressable, Animated } from "react-native";
+import { View, Text, Pressable, Animated, Modal } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,6 +21,7 @@ const Header = ({ isClient }) => {
   const [authUser, setAuthUser] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const [pendingActionsCount, setPendingActionsCount] = useState(0);
+  const [showTooltip, setShowTooltip] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
@@ -202,7 +203,7 @@ const Header = ({ isClient }) => {
       >
         <View className="flex-row items-center">
           <View
-            className="w-10 h-10 rounded-full items-center justify-center"
+            className="w-20 h-10 rounded-full items-center justify-center"
             style={{ backgroundColor: COLORS.primary }}
           >
             <Text
@@ -212,7 +213,7 @@ const Header = ({ isClient }) => {
                 color: COLORS.secondary,
               }}
             >
-              z
+              Zzigs
             </Text>
           </View>
         </View>
@@ -231,30 +232,34 @@ const Header = ({ isClient }) => {
       }}
     >
       <View className="flex-row items-center">
-        <View
-          className="w-10 h-10 rounded-full items-center justify-center mr-3"
-          style={{ backgroundColor: COLORS.primary }}
-        >
-          <Text
-            className="text-white text-xl"
-            style={{ fontFamily: "OpenSans_700Bold", color: COLORS.secondary }}
+        <View className="flex-row items-center">
+          <View
+            className="w-20 h-10 rounded-full items-center justify-center"
+            style={{ backgroundColor: COLORS.primary }}
           >
-            z
-          </Text>
-        </View>
+            <Text
+              className="text-white text-xl"
+              style={{ fontFamily: "OpenSans_700Bold", color: COLORS.secondary }}
+            >
+              Zzigs
+            </Text>
+          </View>
 
-        {/* Badge rôle à gauche */}
-        {authUser && (
-          <Text
-            className="text-sm"
-            style={{
-              fontFamily: "OpenSans_600SemiBold",
-              color: COLORS.primary,
-            }}
-          >
-            {isClient ? t("customer") : t("tailor")}
-          </Text>
-        )}
+          {/* Icône type de compte */}
+          {authUser && (
+            <Pressable
+              onPress={() => setShowTooltip(!showTooltip)}
+              className="ml-2 w-8 h-8 rounded-full items-center justify-center"
+              style={{ backgroundColor: isClient ? "#3B82F615" : "#8B5CF615" }}
+            >
+              <MaterialIcons
+                name={isClient ? "person" : "content-cut"}
+                size={18}
+                color={isClient ? "#3B82F6" : "#8B5CF6"}
+              />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <Animated.View
@@ -335,7 +340,7 @@ const Header = ({ isClient }) => {
               className="w-10 h-10 rounded-full items-center justify-center"
               style={{ backgroundColor: COLORS.primary + "15" }}
             >
-              <MaterialIcons name="menu" size={24} color={COLORS.primary} />
+              <MaterialIcons name="account-circle" size={24} color={COLORS.primary} />
             </Pressable>
           </>
         ) : (
@@ -354,6 +359,50 @@ const Header = ({ isClient }) => {
           </Pressable>
         )}
       </Animated.View>
+
+      {/* Tooltip Modal */}
+      <Modal
+        visible={showTooltip}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowTooltip(false)}
+      >
+        <Pressable
+          className="flex-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
+          onPress={() => setShowTooltip(false)}
+        >
+          <View
+            className="absolute left-5 px-4 py-3 rounded-2xl"
+            style={{
+              top: insets.top + 50,
+              backgroundColor: isClient ? "#3B82F6" : "#8B5CF6",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 8,
+            }}
+          >
+            <View className="flex-row items-center">
+              <MaterialIcons
+                name={isClient ? "person" : "content-cut"}
+                size={20}
+                color="#fff"
+              />
+              <Text
+                className="text-white ml-2"
+                style={{
+                  fontFamily: "OpenSans_600SemiBold",
+                  fontSize: 14,
+                }}
+              >
+                {isClient ? t("customer") : t("tailor")}
+              </Text>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 };

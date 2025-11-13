@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useLayoutEffect, useState } from "react";
 import {
   View,
   Text,
@@ -29,6 +29,7 @@ import "moment/locale/fr";
 import { Image } from "expo-image";
 import { COLORS } from "../styles/colors";
 import Loader from "../components/Loader";
+import Header from "../components/Header";
 
 moment.locale("fr");
 
@@ -54,6 +55,7 @@ export default function Calendar() {
     { key: "confirmed", label: t("filters.confirmed"), icon: "check-circle" },
     { key: "refused", label: t("filters.refused"), icon: "cancel" },
   ];
+
 
   const enrichOffersWithUsers = async (offersList) => {
     const enriched = [];
@@ -188,8 +190,7 @@ export default function Calendar() {
   };
 
   const loadMoreOffers = () => {
-    if (loadingMore || displayedOffers.length >= filteredOffers.length)
-      return;
+    if (loadingMore || displayedOffers.length >= filteredOffers.length) return;
 
     setLoadingMore(true);
     setTimeout(() => {

@@ -10,6 +10,7 @@ import HomeScreen from "../screens/HomeScreen";
 import ReportProjectScreen from "../screens/ReportProjectScreen";
 import ProjectDetailsScreen from "../screens/ProjectDetailsScreen";
 import ResetPassword from "../screens/ResetPassword";
+import LandingScreen from "../screens/Auth/LandingScreen";
 
 const Stack = createStackNavigator();
 
@@ -17,21 +18,27 @@ export default function AuthNavigator() {
   return (
     <Stack.Navigator screenOptions={getScreenOptions()}>
       {/* <Stack.Navigator screenOptions={{ headerShown: false }}> */}
+      <Stack.Screen
+        name="Landing"
+        component={LandingScreen}
+        options={{ title: "", headerShown: false }}
+      />
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen
         name="SignIn"
         component={SignInScreen}
         options={{
           title: "",
-          headerTransparent: true,
-          headerStyle: {
-            backgroundColor: "transparent",
-            elevation: 0,
-            shadowOpacity: 0,
-          },
-          headerTitleStyle: {
-            color: "#fff",
-          },
+          // headerTransparent: true,
+          // headerStyle: {
+          //   backgroundColor: "transparent",
+          //   elevation: 0,
+          //   shadowOpacity: 0,
+          // },
+          // headerTitleStyle: {
+          //   color: "#fff",
+          // },
+          headerShown: false,
         }}
       />
 
@@ -53,17 +60,17 @@ export default function AuthNavigator() {
       <Stack.Screen
         name="PasswordPage"
         component={PasswordPage}
-        options={{ title: "" }}
+        options={{ title: "", headerShown: false }}
       />
       <Stack.Screen
         name="Register"
         component={Register}
-        options={{ title: "" }}
+        options={{ title: "", headerShown: false }}
       />
       <Stack.Screen
         name="ForgotPassword"
         component={ForgotPassword}
-        options={{ title: "" }}
+        options={{ title: "", headerShown: false }}
       />
       <Stack.Screen
         name="ResetPassword"

@@ -4,7 +4,7 @@
     "name": "Zzigs",
     "slug": "zzigs",
     "scheme": "zzigs",
-    "version": "2.1.0",
+    "version": "3.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "automatic",
@@ -14,9 +14,12 @@
       "backgroundColor": "#ffffff"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/cf075541-f557-4ad4-b14c-7a27350239f3"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "usesAppleSignIn": true,
       "googleServicesFile": "./GoogleService-Info.plist",
@@ -24,9 +27,14 @@
       "bundleIdentifier": "com.zzigs",
       "buildNumber": "1",
       "infoPlist": {
-        "NSAppTransportSecurity": { "NSAllowsArbitraryLoads": true },
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        },
         "CFBundleAllowMixedLocalizations": true,
-        "CFBundleLocalizations": ["fr"],
+        "CFBundleLocalizations": [
+          "fr",
+          "fr"
+        ],
         "CFBundleDevelopmentRegion": "fr_FR",
         "photosPermission": "L'accès à votre bibliothèque vous permet de",
         "NSCameraUsageDescription": "L'accès à votre caméra vous permet de photographier vos demandes de couture",
@@ -48,12 +56,18 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.zzigs",
-      "versionCode": 6,
+      "versionCode": 7,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyAGiSiBGEsvDTKyfQxlhgD3BFKYHp1cYKQ"
         }
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "com.google.android.gms.permission.AD_ID",
+        "android.permission.RECORD_AUDIO",
+        "com.google.android.gms.permission.AD_ID"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -85,7 +99,9 @@
         }
       ],
       "expo-localization",
-      ["expo-image-picker"],
+      [
+        "expo-image-picker"
+      ],
       [
         "expo-build-properties",
         {
@@ -97,7 +113,9 @@
           },
           "ios": {
             "flipper": true,
-            "forceStaticLinking": ["RNFBApp"],
+            "forceStaticLinking": [
+              "RNFBApp"
+            ],
             "deploymentTarget": "15.1",
             "useFrameworks": "static"
           }
@@ -123,6 +141,9 @@
       "eas": {
         "projectId": "cf075541-f557-4ad4-b14c-7a27350239f3"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }

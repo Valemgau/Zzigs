@@ -141,6 +141,7 @@ export default function EditBankInfo({ route }) {
         type: "success",
         icon: "success",
       });
+      navigation.goBack()
     } catch (error) {
       console.error("Erreur sauvegarde:", error);
       showMessage({

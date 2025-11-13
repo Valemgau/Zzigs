@@ -113,7 +113,7 @@
   "imageSelectionError": "Errore durante la selezione delle immagini.",
   "projectDescription": "Descrizione del progetto",
   "projectDescriptionInfo": "Descrivi il tuo progetto in dettaglio. Specifica il materiale che hai e quello che il sarto deve portare.",
-  "projectDescriptionPlaceholder": "Descrivi il tuo progetto qui...",
+  "projectDescriptionPlaceholder": "Descrivi il tuo progetto in dettaglio (min. {{min}} caratteri)",
   "projectType": "Tipo di progetto",
   "noTypeAvailable": "Nessun tipo disponibile",
   "specifyProjectType": "Specifica il tipo di progetto",
@@ -293,7 +293,7 @@
   "validAmount": "Importo valido",
   "message": "Messaggio",
   "required": "Obbligatorio",
-  "offerMessagePlaceholder": "Descrivi la tua offerta, le tue competenze e perché sei la scelta giusta per questo progetto...",
+  "offerMessagePlaceholder": "Presenta la tua esperienza e spiega perché sei qualificato (min. {{min}} caratteri)",
   "describeExpertise": "Descrivi la tua esperienza",
   "advice": "Consiglio",
   "offerAdvice": "Scrivi un messaggio dettagliato per aumentare le tue possibilità di essere selezionato (minimo 20 caratteri).",
@@ -1640,8 +1640,7 @@
   },
   "loader": {
     "loading": "Caricamento..."
-  }
-  ,
+  },
   "loadingMap": "Caricamento della mappa...",
   "searchRadius": "Raggio di ricerca",
   "result": "risultato",
@@ -1672,7 +1671,39 @@
   "loadingNannies": "Caricamento delle tate...",
   "noNannyFound": "Nessuna tata trovata",
   "tryExpandingSearch": "Prova ad ampliare la tua area di ricerca",
-  "expandTo": "Espandi a"
+  "expandTo": "Espandi a",
+  "landingTitle": "Un'app dove tutti i profili di sarti e sarte possono offrire i loro servizi a domicilio o in ufficio",
+  "landingSubtitle": "Iscriviti!",
+  "getStarted": "Inizia",
 
+  "headerProjects": {
+    "calendar": "Calendario",
+    "messages": "Messaggi",
+    "settings": "Impostazioni"
+  },
 
+  "projectNotFound": "Progetto non trovato",
+  "projectLoadError": "Impossibile caricare il progetto",
+  "changesSaved": "Modifiche salvate",
+  "changesSavedDesc": "Il tuo progetto è stato aggiornato con successo",
+  "projectSaveError": "Impossibile salvare le modifiche",
+  "projectDeleted": "Progetto eliminato",
+  "projectDeletedDesc": "Il progetto è stato eliminato definitivamente",
+  "projectDeleteError": "Impossibile eliminare il progetto",
+  "managePhotos": "Gestisci le foto del progetto",
+  "add": "Aggiungi",
+  "deleteProject": "Elimina progetto",
+  "deleteProjectQuestion": "Eliminare il progetto?",
+  "deleteProjectWarning": "Questa azione è irreversibile. Tutti i dati del progetto verranno eliminati definitivamente.",
+  "deleting": "Eliminazione...",
+  "yesDelete": "Sì, elimina",
+  "cancel": "Annulla",
+  "save": "Salva",
+  "descriptionTooShort": "Descrizione troppo breve",
+  "descriptionTooShortDesc": "Si prega di scrivere almeno {{min}} caratteri (attualmente {{current}})",
+  "phoneInternationalFormat": "Formato internazionale richiesto",
+  "phoneInternationalExample": "Esempio: +33 6 12 34 56 78 (Francia) o +39 320 1234567 (Italia)",
+  "phoneInvalidFormatInternational": "Il numero deve iniziare con + seguito dal prefisso paese e numero (es: +39 320 1234567)",
+  "phoneFormatHelp": "Formato: +[prefisso paese][numero] (es: +393201234567)",
+  "validFormat": "Formato valido"
 }

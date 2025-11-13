@@ -20,24 +20,12 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import Loader from "../components/Loader";
 import { useTranslation } from "react-i18next";
 
-const INDICATIFS = [
-  { code: "+33", label: "France" },
-  { code: "+1", label: "USA/Canada" },
-  { code: "+44", label: "UK" },
-  { code: "+32", label: "Belgique" },
-  { code: "+41", label: "Suisse" },
-];
-
 export default function EditPhoneNumber({ route }) {
   const { newProfile } = route?.params || {};
   const navigation = useNavigation();
   const { t } = useTranslation();
 
-  const [fields, setFields] = useState({
-    indicatif: "+33",
-    phone: "",
-    confirmPhone: "",
-  });
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentPhone, setCurrentPhone] = useState("");
@@ -48,95 +36,66 @@ export default function EditPhoneNumber({ route }) {
       try {
         const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
         if (snap.exists()) {
-          const phoneNumber = snap.data().phoneNumber || "";
-          const normalized = normalizePhoneNumber(phoneNumber);
-          setCurrentPhone(normalized);
-
-          if (normalized) {
-            const { indicatif, phone } = extractIndicatifFromNumber(normalized);
-            setFields((prev) => ({
-              ...prev,
-              indicatif: indicatif,
-              phone: phone,
-            }));
-          }
+          const phone = snap.data().phoneNumber || "";
+          setCurrentPhone(phone);
+          setPhoneNumber(phone || "");
         }
       } catch (error) {
         console.error("Erreur chargement:", error);
+        setPhoneNumber("");
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  const handleFieldChange = (key, value) => {
-    if (key === "indicatif") {
-      if (!value.startsWith("+")) {
-        value = "+" + value.replace(/\+/g, "");
-      }
-      if (/^\+\d*$/.test(value) && value.length <= 5) {
-        setFields((prev) => ({ ...prev, [key]: value }));
-      }
+  const handlePhoneChange = (value) => {
+    // Si l'utilisateur essaie de tout effacer, on force le +
+    if (!value || value.length === 0) {
+      setPhoneNumber("+");
+      return;
+    }
+
+    // Nettoyer : seulement chiffres et +
+    const cleaned = value.replace(/[^\d\+]/g, "");
+
+    // Le + doit toujours être au début
+    if (!cleaned.startsWith("+")) {
+      setPhoneNumber("+" + cleaned.replace(/\+/g, ""));
     } else {
-      if (/^\d*$/.test(value)) {
-        setFields((prev) => ({ ...prev, [key]: value }));
-      }
+      // Un seul + au début
+      const digits = cleaned.substring(1).replace(/\+/g, "");
+      setPhoneNumber("+" + digits);
     }
   };
 
-  const normalizePhoneNumber = (phone) => {
-    return phone.replace(/[\s\-\.]/g, "");
-  };
-
-  const extractIndicatifFromNumber = (fullNumber) => {
-    for (let ind of INDICATIFS) {
-      if (fullNumber.startsWith(ind.code)) {
-        return {
-          indicatif: ind.code,
-          phone: fullNumber.substring(ind.code.length),
-        };
-      }
+  const validatePhoneNumber = (phone) => {
+    // Le numéro doit commencer par +
+    if (!phone || !phone.startsWith("+")) {
+      return false;
     }
-    if (fullNumber.startsWith("+")) {
-      const match = fullNumber.match(/^(\+\d{1,3})/);
-      if (match) {
-        return {
-          indicatif: match[1],
-          phone: fullNumber.substring(match[1].length),
-        };
-      }
-    }
-    return { indicatif: "+33", phone: fullNumber };
-  };
 
-  const validatePhone = (value) => /^\d+$/.test(value);
+    // Extraire les chiffres après le +
+    const digits = phone.substring(1);
+
+    // Vérifier que ce sont uniquement des chiffres
+    if (!/^\d+$/.test(digits)) {
+      return false;
+    }
+
+    // Norme E.164 : entre 7 et 15 chiffres (après le +)
+    if (digits.length < 7 || digits.length > 15) {
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSave = async () => {
-    const indicatif = fields.indicatif.trim();
-    const phoneTrim = fields.phone.trim();
-    const confirmTrim = fields.confirmPhone.trim();
+    const trimmedPhone = phoneNumber.trim();
 
-    if (!indicatif.startsWith("+")) {
-      showMessage({
-        message: t("invalidIndicatif"),
-        description: t("invalidIndicatifDesc"),
-        type: "warning",
-        icon: "warning",
-      });
-      return;
-    }
-
-    if (indicatif.length < 2) {
-      showMessage({
-        message: t("invalidIndicatif"),
-        description: t("invalidIndicatifDesc2"),
-        type: "warning",
-        icon: "warning",
-      });
-      return;
-    }
-
-    if (!phoneTrim || !confirmTrim) {
+    // Vérifier que le numéro n'est pas vide
+    if (!trimmedPhone || trimmedPhone === "+") {
       showMessage({
         message: t("requiredFields"),
         description: t("phoneRequiredDesc"),
@@ -146,40 +105,19 @@ export default function EditPhoneNumber({ route }) {
       return;
     }
 
-    if (!validatePhone(phoneTrim) || !validatePhone(confirmTrim)) {
+    // Vérifier que le format est valide
+    if (!validatePhoneNumber(trimmedPhone)) {
       showMessage({
         message: t("invalidFormat"),
-        description: t("phoneInvalidFormatDesc"),
+        description: t("phoneInvalidFormatInternational"),
         type: "warning",
         icon: "warning",
       });
       return;
     }
 
-    if (phoneTrim.length < 6 || phoneTrim.length > 16) {
-      showMessage({
-        message: t("incorrectLength"),
-        description: t("phoneLengthDesc"),
-        type: "warning",
-        icon: "warning",
-      });
-      return;
-    }
-
-    if (phoneTrim !== confirmTrim) {
-      showMessage({
-        message: t("phonesMismatch"),
-        description: t("phonesMismatchDesc"),
-        type: "danger",
-        icon: "danger",
-      });
-      return;
-    }
-
-    const finalPhone = indicatif + phoneTrim;
-    const normCurrentPhone = normalizePhoneNumber(currentPhone || "");
-
-    if (normCurrentPhone === finalPhone) {
+    // Vérifier si le numéro a changé
+    if (currentPhone === trimmedPhone) {
       showMessage({
         message: t("noChanges"),
         description: t("phoneNoChangesDesc"),
@@ -193,7 +131,7 @@ export default function EditPhoneNumber({ route }) {
     try {
       await setDoc(
         doc(db, "users", auth.currentUser.uid),
-        { phoneNumber: finalPhone, updatedAt: new Date() },
+        { phoneNumber: trimmedPhone, updatedAt: new Date() },
         { merge: true }
       );
 
@@ -246,14 +184,20 @@ export default function EditPhoneNumber({ route }) {
       <View className="px-5 pt-6 pb-32">
         <Animated.View
           entering={FadeInDown.duration(300)}
-          className="border-l-4 bg-gray-50 px-4 py-3 mb-8"
-          style={{ borderLeftColor: COLORS.secondary }}
+          className="border-l-4 bg-blue-50 px-4 py-3 mb-8"
+          style={{ borderLeftColor: COLORS.primary }}
         >
           <Text
-            className="text-sm text-gray-700 leading-5"
+            className="text-sm text-gray-700 leading-5 mb-2"
+            style={{ fontFamily: "OpenSans_600SemiBold" }}
+          >
+            {t("phoneInternationalFormat")}
+          </Text>
+          <Text
+            className="text-xs text-gray-600 leading-5"
             style={{ fontFamily: "OpenSans_400Regular" }}
           >
-            {t("phoneInfo")}
+            {t("phoneInternationalExample")}
           </Text>
         </Animated.View>
 
@@ -262,8 +206,8 @@ export default function EditPhoneNumber({ route }) {
             entering={FadeInDown.duration(300).delay(50)}
             className="mb-6"
           >
-            <View className="flex-row items-center bg-white border border-gray-200 px-4 py-3">
-              <MaterialIcons name="phone" size={18} color="#6B7280" />
+            <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-4 py-3">
+              <MaterialIcons name="phone" size={20} color="#6B7280" />
               <View className="ml-3 flex-1">
                 <Text
                   className="text-xs text-gray-500 mb-1 uppercase tracking-wider"
@@ -272,8 +216,8 @@ export default function EditPhoneNumber({ route }) {
                   {t("currentNumber")}
                 </Text>
                 <Text
-                  className="text-sm text-gray-900"
-                  style={{ fontFamily: "OpenSans_400Regular" }}
+                  className="text-base text-gray-900"
+                  style={{ fontFamily: "OpenSans_600SemiBold" }}
                 >
                   {currentPhone}
                 </Text>
@@ -287,132 +231,62 @@ export default function EditPhoneNumber({ route }) {
           className="mb-5"
         >
           <Text
-            className="text-xs text-gray-500 mb-2 uppercase tracking-wider"
+            className="text-xs text-gray-500 mb-3 uppercase tracking-wider"
             style={{ fontFamily: "OpenSans_600SemiBold" }}
           >
             {t("phoneNumber")} *
           </Text>
-          <View className="flex-row gap-2">
-            <View className="bg-white border border-gray-200 px-4 py-3" style={{ width: 80 }}>
-              <TextInput
-                value={fields.indicatif}
-                onChangeText={(v) => handleFieldChange("indicatif", v)}
-                keyboardType="phone-pad"
-                placeholder="+33"
-                placeholderTextColor="#9CA3AF"
-                maxLength={5}
-                className="text-sm text-gray-900"
-                style={{
-                  fontFamily: "OpenSans_400Regular",
-                  height: 36,
-                  paddingVertical: 0,
-                }}
-              />
-            </View>
-            <View className="flex-1 bg-white border border-gray-200 px-4 py-3">
-              <TextInput
-                value={fields.phone}
-                onChangeText={(v) => handleFieldChange("phone", v)}
-                keyboardType="number-pad"
-                maxLength={16}
-                placeholder={t("phoneNumberPlaceholder")}
-                placeholderTextColor="#9CA3AF"
-                className="text-sm text-gray-900"
-                style={{
-                  fontFamily: "OpenSans_400Regular",
-                  height: 36,
-                  paddingVertical: 0,
-                }}
-              />
-            </View>
-          </View>
-        </Animated.View>
 
-        {fields.phone.trim().length > 0 && (
-          <Animated.View
-            entering={FadeInDown.duration(300).delay(200)}
-            className="mb-5"
+          <View
+            className="bg-white border-2 rounded-xl px-4 py-4"
+            style={{
+              borderColor: phoneNumber && phoneNumber !== "+" && validatePhoneNumber(phoneNumber)
+                ? '#10B981'
+                : phoneNumber && phoneNumber !== "+"
+                ? COLORS.primary + '40'
+                : '#E5E7EB'
+            }}
           >
-            <Text
-              className="text-xs text-gray-500 mb-2 uppercase tracking-wider"
-              style={{ fontFamily: "OpenSans_600SemiBold" }}
-            >
-              {t("confirmNumber")} *
-            </Text>
-            <View className="bg-white border border-gray-200 px-4 py-3">
-              <TextInput
-                value={fields.confirmPhone}
-                onChangeText={(v) => handleFieldChange("confirmPhone", v)}
-                keyboardType="number-pad"
-                maxLength={16}
-                placeholder={t("phoneNumberPlaceholder")}
-                placeholderTextColor="#9CA3AF"
-                className="text-sm text-gray-900"
-                style={{
-                  fontFamily: "OpenSans_400Regular",
-                  height: 36,
-                  paddingVertical: 0,
-                }}
-              />
-            </View>
-            {fields.confirmPhone.length > 0 && (
-              <View className="flex-row items-center mt-2">
-                <MaterialIcons
-                  name={
-                    fields.phone === fields.confirmPhone
-                      ? "check-circle"
-                      : "error"
-                  }
-                  size={16}
-                  color={
-                    fields.phone === fields.confirmPhone
-                      ? "#10B981"
-                      : "#EF4444"
-                  }
-                />
-                <Text
-                  className="text-xs ml-2"
-                  style={{
-                    fontFamily: "OpenSans_400Regular",
-                    color:
-                      fields.phone === fields.confirmPhone
-                        ? "#10B981"
-                        : "#EF4444",
-                  }}
-                >
-                  {fields.phone === fields.confirmPhone
-                    ? t("numbersMatch")
-                    : t("numbersNoMatch")}
-                </Text>
-              </View>
-            )}
-          </Animated.View>
-        )}
-
-        {fields.phone.trim().length > 0 && (
-          <Animated.View
-            entering={FadeInDown.duration(300).delay(250)}
-            className="bg-blue-50 border-l-4 px-4 py-3"
-            style={{ borderLeftColor: COLORS.primary }}
-          >
-            <Text
-              className="text-xs text-gray-600 mb-1 uppercase tracking-wider"
-              style={{ fontFamily: "OpenSans_600SemiBold" }}
-            >
-              {t("preview")}
-            </Text>
-            <Text
-              className="text-base font-semibold"
+            <TextInput
+              value={phoneNumber}
+              onChangeText={handlePhoneChange}
+              keyboardType="phone-pad"
+              placeholder="+33612345678"
+              placeholderTextColor="#9CA3AF"
+              maxLength={16}
+              className="text-base text-gray-900"
               style={{
-                fontFamily: "OpenSans_700Bold",
-                color: COLORS.primary,
+                fontFamily: "OpenSans_600SemiBold",
+                height: 40,
+                paddingVertical: 0,
               }}
-            >
-              {fields.indicatif}
-              {fields.phone}
-            </Text>
-          </Animated.View>
-        )}
+            />
+          </View>
+
+          {phoneNumber && phoneNumber !== "+" && !validatePhoneNumber(phoneNumber) && (
+            <View className="flex-row items-center mt-2">
+              <MaterialIcons name="info" size={16} color="#F59E0B" />
+              <Text
+                className="text-xs ml-2 text-amber-600"
+                style={{ fontFamily: "OpenSans_400Regular" }}
+              >
+                {t("phoneFormatHelp")}
+              </Text>
+            </View>
+          )}
+
+          {phoneNumber && validatePhoneNumber(phoneNumber) && (
+            <View className="flex-row items-center mt-2">
+              <MaterialIcons name="check-circle" size={16} color="#10B981" />
+              <Text
+                className="text-xs ml-2 text-emerald-600"
+                style={{ fontFamily: "OpenSans_600SemiBold" }}
+              >
+                {t("validFormat")} : {phoneNumber}
+              </Text>
+            </View>
+          )}
+        </Animated.View>
         <View className="mt-10">
           <Pressable
             disabled={saving}

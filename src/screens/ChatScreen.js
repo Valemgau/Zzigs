@@ -15,7 +15,13 @@ import {
   Animated,
   TouchableWithoutFeedback,
 } from "react-native";
-import { GiftedChat, Bubble, InputToolbar, Send, SystemMessage } from "react-native-gifted-chat";
+import {
+  GiftedChat,
+  Bubble,
+  InputToolbar,
+  Send,
+  SystemMessage,
+} from "react-native-gifted-chat";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import {
   collection,
@@ -80,24 +86,46 @@ export default function ChatScreen() {
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const availableTimes = [
-    "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00",
-    "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30",
-    "19:00", "19:30",
+    "08:30",
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "12:00",
+    "12:30",
+    "13:00",
+    "13:30",
+    "14:00",
+    "14:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "16:30",
+    "17:00",
+    "17:30",
+    "18:00",
+    "18:30",
+    "19:00",
+    "19:30",
   ];
 
   // Récupérer les données du user actuel
   useEffect(() => {
     const fetchCurrentUser = async () => {
       if (!userId) return;
-      
+
       try {
         const currentUserDoc = await getDoc(doc(db, "users", userId));
         if (currentUserDoc.exists()) {
           setCurrentUserData(currentUserDoc.data());
         }
       } catch (error) {
-        console.error("Erreur lors du chargement des données utilisateur:", error);
+        console.error(
+          "Erreur lors du chargement des données utilisateur:",
+          error
+        );
       }
     };
 
@@ -113,7 +141,7 @@ export default function ChatScreen() {
       return currentUserData.firstname;
     }
     if (currentUser?.email) {
-      return currentUser.email.split('@')[0];
+      return currentUser.email.split("@")[0];
     }
     return t("chat.defaults.user");
   };
@@ -137,9 +165,10 @@ export default function ChatScreen() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs = snapshot.docs.map((docSnap) => {
         const data = docSnap.data();
-        const createdAt = data.createdAt instanceof Timestamp 
-          ? data.createdAt.toDate() 
-          : new Date();
+        const createdAt =
+          data.createdAt instanceof Timestamp
+            ? data.createdAt.toDate()
+            : new Date();
 
         return {
           _id: docSnap.id,
@@ -205,13 +234,17 @@ export default function ChatScreen() {
 
         // Notification à l'autre utilisateur
         const otherUserDoc = await getDoc(doc(db, "users", otherUser.id));
-        const otherUserData = otherUserDoc.exists() ? otherUserDoc.data() : null;
+        const otherUserData = otherUserDoc.exists()
+          ? otherUserDoc.data()
+          : null;
 
         if (otherUserData?.expoPushToken) {
           await sendNotifs(
             { id: otherUser.id, ...otherUserData },
             {
-              title: t("chat.notifications.newMessage", { userName: getCurrentUserDisplayName() }),
+              title: t("chat.notifications.newMessage", {
+                userName: getCurrentUserDisplayName(),
+              }),
               body: message.text.substring(0, 100),
               type: "new_message",
             }
@@ -264,7 +297,10 @@ export default function ChatScreen() {
           { id: otherUser.id, ...couturierData },
           {
             title: t("chat.notifications.offerAccepted"),
-            body: t("chat.notifications.offerAcceptedDesc", { price: offerData.price, projectTitle: project.title }),
+            body: t("chat.notifications.offerAcceptedDesc", {
+              price: offerData.price,
+              projectTitle: project.title,
+            }),
             type: "offer_accepted",
           }
         );
@@ -304,7 +340,9 @@ export default function ChatScreen() {
           { id: otherUser.id, ...couturierData },
           {
             title: t("chat.notifications.offerRefusedTitle"),
-            body: t("chat.notifications.offerRefusedDesc", { projectTitle: project.title }),
+            body: t("chat.notifications.offerRefusedDesc", {
+              projectTitle: project.title,
+            }),
             type: "offer_refused",
           }
         );
@@ -345,7 +383,10 @@ export default function ChatScreen() {
       });
 
       await sendSystemMessage(
-        t("chat.systemMessages.priceModified", { oldPrice: offerData.price, newPrice: price })
+        t("chat.systemMessages.priceModified", {
+          oldPrice: offerData.price,
+          newPrice: price,
+        })
       );
 
       const clientDoc = await getDoc(doc(db, "users", otherUser.id));
@@ -404,7 +445,9 @@ export default function ChatScreen() {
       });
 
       await sendSystemMessage(
-        t("chat.systemMessages.appointmentProposed", { date: moment(appointmentDate).format("dddd D MMMM à HH:mm") })
+        t("chat.systemMessages.appointmentProposed", {
+          date: moment(appointmentDate).format("dddd D MMMM à HH:mm"),
+        })
       );
 
       const couturierDoc = await getDoc(doc(db, "users", otherUser.id));
@@ -415,7 +458,9 @@ export default function ChatScreen() {
           { id: otherUser.id, ...couturierData },
           {
             title: t("chat.notifications.newAppointmentTitle"),
-            body: t("chat.notifications.newAppointmentDesc", { date: moment(appointmentDate).format("D MMMM à HH:mm") }),
+            body: t("chat.notifications.newAppointmentDesc", {
+              date: moment(appointmentDate).format("D MMMM à HH:mm"),
+            }),
             type: "appointment_pending",
           }
         );
@@ -449,7 +494,9 @@ export default function ChatScreen() {
       });
 
       await sendSystemMessage(
-        t("chat.systemMessages.appointmentConfirmed", { date: moment(appointment.date).format("dddd D MMMM à HH:mm") })
+        t("chat.systemMessages.appointmentConfirmed", {
+          date: moment(appointment.date).format("dddd D MMMM à HH:mm"),
+        })
       );
 
       const clientDoc = await getDoc(doc(db, "users", otherUser.id));
@@ -460,7 +507,9 @@ export default function ChatScreen() {
           { id: otherUser.id, ...clientData },
           {
             title: t("chat.notifications.appointmentConfirmedTitle"),
-            body: t("chat.notifications.appointmentConfirmedDesc", { date: moment(appointment.date).format("D MMMM à HH:mm") }),
+            body: t("chat.notifications.appointmentConfirmedDesc", {
+              date: moment(appointment.date).format("D MMMM à HH:mm"),
+            }),
             type: "appointment_confirmed",
           }
         );
@@ -535,7 +584,9 @@ export default function ChatScreen() {
       });
 
       await sendSystemMessage(
-        t("chat.systemMessages.appointmentCancelled", { reason: cancelReason.trim() })
+        t("chat.systemMessages.appointmentCancelled", {
+          reason: cancelReason.trim(),
+        })
       );
 
       const otherUserDoc = await getDoc(doc(db, "users", otherUser.id));
@@ -546,7 +597,9 @@ export default function ChatScreen() {
           { id: otherUser.id, ...otherUserData },
           {
             title: t("chat.notifications.appointmentCancelledTitle"),
-            body: t("chat.notifications.appointmentCancelledDesc", { reason: cancelReason.trim() }),
+            body: t("chat.notifications.appointmentCancelledDesc", {
+              reason: cancelReason.trim(),
+            }),
             type: "appointment_cancelled",
           }
         );
@@ -609,7 +662,9 @@ export default function ChatScreen() {
           { id: otherUser.id, ...clientData },
           {
             title: t("chat.notifications.missionCompletedTitle"),
-            body: t("chat.notifications.missionCompletedDesc", { price: offerData.price }),
+            body: t("chat.notifications.missionCompletedDesc", {
+              price: offerData.price,
+            }),
             type: "mission_completed",
           }
         );
@@ -731,7 +786,10 @@ export default function ChatScreen() {
 
   const renderSend = (props) => {
     return (
-      <Send {...props} containerStyle={{ justifyContent: "center", paddingHorizontal: 8 }}>
+      <Send
+        {...props}
+        containerStyle={{ justifyContent: "center", paddingHorizontal: 8 }}
+      >
         <View
           className="w-10 h-10 rounded-full items-center justify-center"
           style={{ backgroundColor: COLORS.primary }}
@@ -773,8 +831,15 @@ export default function ChatScreen() {
             <View className="bg-white px-4 py-3 border-b border-gray-200">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center flex-1">
-                  <Pressable onPress={() => navigation.goBack()} className="mr-3">
-                    <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
+                  <Pressable
+                    onPress={() => navigation.goBack()}
+                    className="mr-3"
+                  >
+                    <MaterialIcons
+                      name="arrow-back"
+                      size={24}
+                      color="#1F2937"
+                    />
                   </Pressable>
 
                   {otherUser.photo ? (
@@ -822,35 +887,45 @@ export default function ChatScreen() {
                   {offerData.status === "confirmed" && (
                     <>
                       <Pressable onPress={handleSMS} className="p-2">
-                        <MaterialIcons name="message" size={24} color={COLORS.primary} />
+                        <MaterialIcons
+                          name="message"
+                          size={24}
+                          color={COLORS.primary}
+                        />
                       </Pressable>
                       <Pressable onPress={handleCall} className="p-2">
-                        <MaterialIcons name="phone" size={24} color={COLORS.primary} />
+                        <MaterialIcons
+                          name="phone"
+                          size={24}
+                          color={COLORS.primary}
+                        />
                       </Pressable>
                     </>
                   )}
                   <Pressable onPress={toggleHeader} className="p-2">
-                    <MaterialIcons 
-                      name={headerExpanded ? "expand-less" : "expand-more"} 
-                      size={24} 
-                      color="#6B7280" 
+                    <MaterialIcons
+                      name={headerExpanded ? "expand-less" : "expand-more"}
+                      size={24}
+                      color="#6B7280"
                     />
                   </Pressable>
                 </View>
               </View>
 
               {/* Info bar - Collapsable */}
-              <Animated.View 
-                style={{ 
+              <Animated.View
+                style={{
                   maxHeight: animatedInfoBarHeight,
-                  overflow: 'hidden',
+                  overflow: "hidden",
                 }}
               >
                 <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-gray-100">
                   <View className="flex-row items-center">
                     <View
                       className="w-2 h-2 rounded-full mr-2"
-                      style={{ backgroundColor: getStatusColor(offerData.status) }}
+                      style={{
+                        backgroundColor: getStatusColor(offerData.status),
+                      }}
                     />
                     <Text
                       className="text-xs text-gray-600"
@@ -878,10 +953,10 @@ export default function ChatScreen() {
             </View>
 
             {/* Bandeau d'information contextuelle - Collapsable */}
-            <Animated.View 
-              style={{ 
+            <Animated.View
+              style={{
                 maxHeight: animatedInfoBarHeight,
-                overflow: 'hidden',
+                overflow: "hidden",
               }}
               className="bg-blue-50 border-b border-blue-100"
             >
@@ -900,7 +975,11 @@ export default function ChatScreen() {
 
                 {!isClient && offerData.status === "pending" && (
                   <View className="flex-row items-center">
-                    <MaterialIcons name="hourglass-empty" size={18} color="#F59E0B" />
+                    <MaterialIcons
+                      name="hourglass-empty"
+                      size={18}
+                      color="#F59E0B"
+                    />
                     <Text
                       className="text-sm text-orange-800 ml-2 flex-1"
                       style={{ fontFamily: "OpenSans_600SemiBold" }}
@@ -910,29 +989,37 @@ export default function ChatScreen() {
                   </View>
                 )}
 
-                {isClient && offerData.status === "confirmed" && !appointment && (
-                  <View className="flex-row items-center">
-                    <MaterialIcons name="event" size={18} color="#3B82F6" />
-                    <Text
-                      className="text-sm text-blue-800 ml-2 flex-1"
-                      style={{ fontFamily: "OpenSans_600SemiBold" }}
-                    >
-                      {t("chat.infoBar.clientMustProposeAppointment")}
-                    </Text>
-                  </View>
-                )}
+                {isClient &&
+                  offerData.status === "confirmed" &&
+                  !appointment && (
+                    <View className="flex-row items-center">
+                      <MaterialIcons name="event" size={18} color="#3B82F6" />
+                      <Text
+                        className="text-sm text-blue-800 ml-2 flex-1"
+                        style={{ fontFamily: "OpenSans_600SemiBold" }}
+                      >
+                        {t("chat.infoBar.clientMustProposeAppointment")}
+                      </Text>
+                    </View>
+                  )}
 
-                {!isClient && offerData.status === "confirmed" && !appointment && (
-                  <View className="flex-row items-center">
-                    <MaterialIcons name="event-note" size={18} color="#F59E0B" />
-                    <Text
-                      className="text-sm text-orange-800 ml-2 flex-1"
-                      style={{ fontFamily: "OpenSans_600SemiBold" }}
-                    >
-                      {t("chat.infoBar.tailorWaitingAppointment")}
-                    </Text>
-                  </View>
-                )}
+                {!isClient &&
+                  offerData.status === "confirmed" &&
+                  !appointment && (
+                    <View className="flex-row items-center">
+                      <MaterialIcons
+                        name="event-note"
+                        size={18}
+                        color="#F59E0B"
+                      />
+                      <Text
+                        className="text-sm text-orange-800 ml-2 flex-1"
+                        style={{ fontFamily: "OpenSans_600SemiBold" }}
+                      >
+                        {t("chat.infoBar.tailorWaitingAppointment")}
+                      </Text>
+                    </View>
+                  )}
 
                 {isClient && appointment?.status === "pending" && (
                   <View className="flex-row items-center">
@@ -948,7 +1035,11 @@ export default function ChatScreen() {
 
                 {!isClient && appointment?.status === "pending" && (
                   <View className="flex-row items-center">
-                    <MaterialIcons name="event-available" size={18} color="#3B82F6" />
+                    <MaterialIcons
+                      name="event-available"
+                      size={18}
+                      color="#3B82F6"
+                    />
                     <Text
                       className="text-sm text-blue-800 ml-2 flex-1"
                       style={{ fontFamily: "OpenSans_600SemiBold" }}
@@ -960,12 +1051,18 @@ export default function ChatScreen() {
 
                 {appointment?.status === "confirmed" && (
                   <View className="flex-row items-center">
-                    <MaterialIcons name="check-circle" size={18} color="#10B981" />
+                    <MaterialIcons
+                      name="check-circle"
+                      size={18}
+                      color="#10B981"
+                    />
                     <Text
                       className="text-sm text-green-800 ml-2 flex-1"
                       style={{ fontFamily: "OpenSans_600SemiBold" }}
                     >
-                      {t("chat.infoBar.appointmentConfirmed", { date: moment(appointment.date).format("DD/MM à HH:mm") })}
+                      {t("chat.infoBar.appointmentConfirmed", {
+                        date: moment(appointment.date).format("DD/MM à HH:mm"),
+                      })}
                     </Text>
                   </View>
                 )}
@@ -996,7 +1093,11 @@ export default function ChatScreen() {
 
                 {!isClient && appointment?.status === "waitPayment" && (
                   <View className="flex-row items-center">
-                    <MaterialIcons name="hourglass-empty" size={18} color="#8B5CF6" />
+                    <MaterialIcons
+                      name="hourglass-empty"
+                      size={18}
+                      color="#8B5CF6"
+                    />
                     <Text
                       className="text-sm text-purple-800 ml-2 flex-1"
                       style={{ fontFamily: "OpenSans_600SemiBold" }}
@@ -1008,7 +1109,11 @@ export default function ChatScreen() {
 
                 {appointment?.status === "paymentConfirmed" && (
                   <View className="flex-row items-center">
-                    <MaterialIcons name="check-circle" size={18} color="#10B981" />
+                    <MaterialIcons
+                      name="check-circle"
+                      size={18}
+                      color="#10B981"
+                    />
                     <Text
                       className="text-sm text-green-800 ml-2 flex-1"
                       style={{ fontFamily: "OpenSans_600SemiBold" }}
@@ -1056,7 +1161,11 @@ export default function ChatScreen() {
                         className="mr-2 px-4 py-2 rounded-full flex-row items-center"
                         style={{ backgroundColor: "#10B981" }}
                       >
-                        <MaterialIcons name="check-circle" size={16} color="#fff" />
+                        <MaterialIcons
+                          name="check-circle"
+                          size={16}
+                          color="#fff"
+                        />
                         <Text
                           className="text-white text-xs ml-1"
                           style={{ fontFamily: "OpenSans_700Bold" }}
@@ -1126,21 +1235,24 @@ export default function ChatScreen() {
                 {/* Actions COUTURIER */}
                 {!isClient && (
                   <>
-                    {(offerData.status === "pending" || offerData.status === "confirmed") && (
-                      <Pressable
-                        onPress={() => setPriceModalVisible(true)}
-                        className="mr-2 px-4 py-2 rounded-full flex-row items-center"
-                        style={{ backgroundColor: COLORS.primary }}
-                      >
-                        <MaterialIcons name="euro" size={16} color="#fff" />
-                        <Text
-                          className="text-white text-xs ml-1"
-                          style={{ fontFamily: "OpenSans_700Bold" }}
+                    {(offerData.status === "pending" ||
+                      offerData.status === "confirmed") &&
+                      appointment?.status !== "waitPayment" &&
+                      appointment?.status !== "paymentConfirmed" && (
+                        <Pressable
+                          onPress={() => setPriceModalVisible(true)}
+                          className="mr-2 px-4 py-2 rounded-full flex-row items-center"
+                          style={{ backgroundColor: COLORS.primary }}
                         >
-                          {t("chat.buttons.modifyPrice")}
-                        </Text>
-                      </Pressable>
-                    )}
+                          <MaterialIcons name="euro" size={16} color="#fff" />
+                          <Text
+                            className="text-white text-xs ml-1"
+                            style={{ fontFamily: "OpenSans_700Bold" }}
+                          >
+                            {t("chat.buttons.modifyPrice")}
+                          </Text>
+                        </Pressable>
+                      )}
 
                     {appointment?.status === "pending" && (
                       <>
@@ -1212,7 +1324,11 @@ export default function ChatScreen() {
                         className="mr-2 px-4 py-2 rounded-full flex-row items-center"
                         style={{ backgroundColor: "#10B981" }}
                       >
-                        <MaterialIcons name="check-circle" size={16} color="#fff" />
+                        <MaterialIcons
+                          name="check-circle"
+                          size={16}
+                          color="#fff"
+                        />
                         <Text
                           className="text-white text-xs ml-1"
                           style={{ fontFamily: "OpenSans_700Bold" }}
@@ -1268,7 +1384,10 @@ export default function ChatScreen() {
             <View className="bg-white p-6 rounded-2xl">
               <Text
                 className="text-2xl mb-5 text-center"
-                style={{ fontFamily: "OpenSans_700Bold", color: COLORS.primary }}
+                style={{
+                  fontFamily: "OpenSans_700Bold",
+                  color: COLORS.primary,
+                }}
               >
                 {t("chat.modals.decision.title")}
               </Text>
@@ -1284,7 +1403,10 @@ export default function ChatScreen() {
                   <MaterialIcons name="euro" size={24} color={COLORS.primary} />
                   <Text
                     className="text-3xl ml-2"
-                    style={{ fontFamily: "OpenSans_700Bold", color: COLORS.primary }}
+                    style={{
+                      fontFamily: "OpenSans_700Bold",
+                      color: COLORS.primary,
+                    }}
                   >
                     {offerData.price}
                   </Text>
@@ -1354,7 +1476,10 @@ export default function ChatScreen() {
               <View className="bg-white p-6 rounded-2xl">
                 <Text
                   className="text-2xl mb-5 text-center"
-                  style={{ fontFamily: "OpenSans_700Bold", color: COLORS.primary }}
+                  style={{
+                    fontFamily: "OpenSans_700Bold",
+                    color: COLORS.primary,
+                  }}
                 >
                   {t("chat.modals.price.title")}
                 </Text>
@@ -1440,7 +1565,10 @@ export default function ChatScreen() {
             <View className="bg-white p-6 rounded-2xl max-h-[80%]">
               <Text
                 className="text-2xl mb-5 text-center"
-                style={{ fontFamily: "OpenSans_700Bold", color: COLORS.primary }}
+                style={{
+                  fontFamily: "OpenSans_700Bold",
+                  color: COLORS.primary,
+                }}
               >
                 {t("chat.modals.appointment.title")}
               </Text>
@@ -1531,7 +1659,9 @@ export default function ChatScreen() {
                   className="flex-1 px-5 py-4 rounded-xl"
                   style={{
                     backgroundColor:
-                      !selectedDate || !selectedTime ? "#D1D5DB" : COLORS.primary,
+                      !selectedDate || !selectedTime
+                        ? "#D1D5DB"
+                        : COLORS.primary,
                   }}
                 >
                   <Text

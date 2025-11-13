@@ -13,18 +13,17 @@ import {
   Alert,
   ScrollView,
   Modal,
-  TouchableOpacity,
-  FlatList,
+  ActivityIndicator,
 } from "react-native";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { auth, db } from "../../config/firebase";
-import { doc, getDoc, collection, getDocs, addDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs } from "firebase/firestore";
 import { showMessage } from "react-native-flash-message";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import Animated, { FadeIn, FadeInDown, FadeInUp, FadeOut } from "react-native-reanimated";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import Loader from "../components/Loader";
@@ -34,102 +33,92 @@ import { validateText, VALIDATION_RULES } from "../config/validationRules";
 
 const BUDGET_OPTIONS = [
   { label: "Moins de 30€", value: "<30" },
-  { label: "31€ - 100€", value: "31-100" }, 
+  { label: "31€ - 100€", value: "31-100" },
   { label: "101€ - 250€", value: "101-250" },
   { label: "251€ - 500€", value: "251-500" },
   { label: "Plus de 500€", value: ">500" },
 ];
 
-export default function AddProject() {
+export default function EditProject() {
   const navigation = useNavigation();
+  const route = useRoute();
   const { t } = useTranslation();
+  const { projectId } = route.params;
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [project, setProject] = useState("");
   const [type, setType] = useState("");
   const [otherType, setOtherType] = useState("");
   const [projectTypes, setProjectTypes] = useState([]);
-  const [userMaterials, setUserMaterials] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [budgetModalVisible, setBudgetModalVisible] = useState(false);
-  const [photoWarningVisible, setPhotoWarningVisible] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState(null);
-  const [publishing, setPublishing] = useState(false);
-  const [userData, setUserData] = useState(null);
-  const [photos, setPhotos] = useState([]);
   const [budgetInput, setBudgetInput] = useState("");
+  const [photos, setPhotos] = useState([]);
+  const [originalPhotos, setOriginalPhotos] = useState([]);
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      const checkAndLoad = async () => {
-        const user = auth.currentUser;
-        if (!user) return;
+  useEffect(() => {
+    loadProjectData();
+  }, [projectId]);
 
-        try {
-          const userDoc = await getDoc(doc(db, "users", user.uid));
-          const data = userDoc.data();
-          setUserData(data);
+  const loadProjectData = async () => {
+    try {
+      setLoading(true);
+      const projectDoc = await getDoc(doc(db, "projects", projectId));
 
-          if (
-            !data?.username ||
-            !data?.firstname ||
-            !data?.address ||
-            !data?.city ||
-            !data?.department
-          ) {
-            Alert.alert(t("incompleteInfo"), t("incompleteInfoDesc"));
-            navigation.replace("SettingsScreen");
-            return;
-          }
+      if (!projectDoc.exists()) {
+        showMessage({
+          message: t("error"),
+          description: t("projectNotFound"),
+          type: "danger",
+        });
+        navigation.goBack();
+        return;
+      }
 
-          if (
-            !data?.address ||
-            !data?.city ||
-            !data?.postalCode ||
-            data.address.trim() === "" ||
-            data.city.trim() === "" ||
-            data.postalCode.trim() === ""
-          ) {
-            showMessage({
-              message: t("incompleteAddress"),
-              description: t("incompleteAddressDesc"),
-              type: "warning",
-              icon: "warning",
-            });
-            navigation.navigate("EditLocation");
-            return;
-          }
+      const data = projectDoc.data();
+      setProject(data.project || "");
+      setType(data.type || "");
 
-          if (!data?.phoneNumber || data.phoneNumber.trim() === "") {
-            showMessage({
-              message: t("missingPhone"),
-              description: t("missingPhoneDesc"),
-              type: "warning",
-              icon: "warning",
-            });
-            navigation.navigate("EditPhoneNumber");
-            return;
-          }
+      // Load categories
+      const snapshot = await getDocs(collection(db, "categories"));
+      const categories = snapshot.docs
+        .map((doc) => doc.data().name)
+        .filter(Boolean);
+      setProjectTypes(categories);
 
-          let materials = [];
-          if (data.sewingMachine) materials.push(t("sewingMachine"));
-          if (data.serger) materials.push(t("serger"));
-          setUserMaterials(materials);
+      // Check if type is "other"
+      if (!categories.includes(data.type) && data.type) {
+        setType(t("other"));
+        setOtherType(data.type);
+      }
 
-          const snapshot = await getDocs(collection(db, "categories"));
-          const categories = snapshot.docs
-            .map((doc) => doc.data().name)
-            .filter(Boolean);
-          setProjectTypes(categories);
-        } catch (e) {
-          Alert.alert(t("error"), t("loadErrorCategories"));
-          setProjectTypes([]);
-          setUserMaterials([]);
-        }
-        setLoading(false);
-      };
-      checkAndLoad();
-      return () => {};
-    }, [navigation, t])
-  );
+      // Handle budget
+      const budgetValue = data.budget;
+      if (budgetValue && !isNaN(parseInt(budgetValue))) {
+        setBudgetInput(budgetValue.toString());
+      } else {
+        setSelectedBudget(budgetValue || null);
+      }
+
+      // Load photos
+      setPhotos(data.photos || []);
+      setOriginalPhotos(data.photos || []);
+
+    } catch (error) {
+      console.error("Erreur chargement projet:", error);
+      showMessage({
+        message: t("error"),
+        description: t("projectLoadError"),
+        type: "danger",
+      });
+      navigation.goBack();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const uploadPhotoAsync = async (uri) => {
     const response = await fetch(uri);
@@ -146,7 +135,17 @@ export default function AddProject() {
     return await getDownloadURL(storageRef);
   };
 
-  const handlePublish = async () => {
+  const deletePhotoFromStorage = async (photoUrl) => {
+    try {
+      const storage = getStorage();
+      const photoRef = ref(storage, photoUrl);
+      await deleteObject(photoRef);
+    } catch (error) {
+      console.error("Erreur suppression photo:", error);
+    }
+  };
+
+  const handleSave = async () => {
     const validation = validateText(project, "project");
     if (!validation.isValid) {
       if (validation.error === "required") {
@@ -164,6 +163,7 @@ export default function AddProject() {
       }
       return;
     }
+
     const actualType = type === t("other") ? otherType.trim() : type;
     if (!actualType) {
       showMessage({
@@ -173,6 +173,7 @@ export default function AddProject() {
       });
       return;
     }
+
     if (!selectedBudget && !budgetInput) {
       showMessage({
         message: t("missingBudget"),
@@ -181,6 +182,7 @@ export default function AddProject() {
       });
       return;
     }
+
     if (budgetInput) {
       const numBudget = parseInt(budgetInput, 10);
       if (isNaN(numBudget) || numBudget < 1 || numBudget > 100000) {
@@ -193,86 +195,87 @@ export default function AddProject() {
       }
     }
 
-    if (photos.length === 0) {
-      setPhotoWarningVisible(true);
-      return;
-    }
-
-    await proceedWithPublish();
-  };
-
-  const proceedWithPublish = async () => {
-    setPublishing(true);
-    setPhotoWarningVisible(false);
+    setSaving(true);
     try {
-      const user = auth.currentUser;
-      if (!user) throw new Error(t("userNotConnected"));
+      // Upload new photos
+      const newPhotos = photos.filter(uri => !originalPhotos.includes(uri));
+      const uploadedUrls = await Promise.all(
+        newPhotos.map(uri => uploadPhotoAsync(uri))
+      );
 
-      let photoUrls = [];
-      if (photos && photos.length > 0) {
-        photoUrls = await Promise.all(
-          photos.map((uri) => uploadPhotoAsync(uri))
-        );
-      }
+      // Delete removed photos
+      const removedPhotos = originalPhotos.filter(uri => !photos.includes(uri));
+      await Promise.all(
+        removedPhotos.map(uri => deletePhotoFromStorage(uri))
+      );
 
-      await addDoc(collection(db, "projects"), {
-        userId: user.uid,
+      // Combine old and new photo URLs
+      const existingPhotos = photos.filter(uri => originalPhotos.includes(uri));
+      const allPhotos = [...existingPhotos, ...uploadedUrls];
+
+      await updateDoc(doc(db, "projects", projectId), {
         project,
-        type: type === t("other") ? otherType.trim() : type,
-        budget: budgetInput ? budgetInput : selectedBudget,
-        materials: userMaterials,
-        photos: photoUrls,
-        createdAt: new Date(),
-        postalCode: userData.postalCode,
-        city: userData.city,
-        status: "pending",
+        type: actualType,
+        budget: budgetInput || selectedBudget,
+        photos: allPhotos,
+        updatedAt: new Date(),
       });
 
       showMessage({
-        message: t("projectPublished"),
-        description: t("projectPublishedDesc"),
+        message: t("changesSaved"),
+        description: t("changesSavedDesc"),
         type: "success",
         icon: "success",
+        duration: 2000,
       });
+
       navigation.goBack();
-    } catch (e) {
-      console.error("Erreur publication:", e);
+    } catch (error) {
+      console.error("Erreur sauvegarde:", error);
       showMessage({
         message: t("error"),
-        description: t("publishError"),
+        description: t("projectSaveError"),
         type: "danger",
       });
+    } finally {
+      setSaving(false);
     }
-    setPublishing(false);
   };
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <Pressable
-          onPress={handlePublish}
-          disabled={publishing}
-          className="mr-4"
-          style={{ opacity: publishing ? 0.5 : 1 }}
-        >
-          <Text
-            className="text-base"
-            style={{ 
-              fontFamily: "OpenSans_600SemiBold",
-              color: publishing ? '#9CA3AF' : COLORS.primary
-            }}
-          >
-            {publishing ? "..." : t("publish")}
-          </Text>
-        </Pressable>
-      ),
-    });
-  }, [navigation, handlePublish, publishing, t]);
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      // Delete all photos from storage
+      await Promise.all(
+        originalPhotos.map(uri => deletePhotoFromStorage(uri))
+      );
+
+      // Delete project document
+      await deleteDoc(doc(db, "projects", projectId));
+
+      showMessage({
+        message: t("projectDeleted"),
+        description: t("projectDeletedDesc"),
+        type: "info",
+        icon: "info",
+        duration: 2000,
+      });
+
+      navigation.goBack();
+    } catch (error) {
+      console.error("Erreur suppression:", error);
+      showMessage({
+        message: t("error"),
+        description: t("projectDeleteError"),
+        type: "danger",
+      });
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmVisible(false);
+    }
+  };
 
   const pickImages = async () => {
-    if (photoWarningVisible) {
-      setPhotoWarningVisible(!photoWarningVisible);
-    }
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(t("permissionDenied"), t("galleryPermissionDenied"));
@@ -303,6 +306,29 @@ export default function AddProject() {
       Alert.alert(t("error"), t("imageSelectionError"));
     }
   };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          onPress={handleSave}
+          disabled={saving}
+          className="mr-4"
+          style={{ opacity: saving ? 0.5 : 1 }}
+        >
+          <Text
+            className="text-base"
+            style={{
+              fontFamily: "OpenSans_600SemiBold",
+              color: saving ? '#9CA3AF' : COLORS.primary
+            }}
+          >
+            {saving ? "..." : t("save")}
+          </Text>
+        </Pressable>
+      ),
+    });
+  }, [navigation, handleSave, saving, t]);
 
   if (loading) {
     return <Loader />;
@@ -349,7 +375,7 @@ export default function AddProject() {
               </Text>
               <Text
                 className="text-xs mt-0.5"
-                style={{ 
+                style={{
                   fontFamily: "OpenSans_400Regular",
                   color: '#6B7280'
                 }}
@@ -361,7 +387,7 @@ export default function AddProject() {
 
           <TextInput
             className="bg-gray-50 p-3 text-gray-900 min-h-[120px] text-base rounded-2xl"
-            style={{ 
+            style={{
               fontFamily: "OpenSans_400Regular",
               borderWidth: 1.5,
               borderColor: project ? COLORS.primary + '30' : '#E5E7EB'
@@ -462,7 +488,7 @@ export default function AddProject() {
             <Animated.View entering={FadeIn.duration(300)}>
               <TextInput
                 className="bg-gray-50 p-4 text-gray-900 mt-3 text-base rounded-2xl"
-                style={{ 
+                style={{
                   fontFamily: "OpenSans_400Regular",
                   borderWidth: 1.5,
                   borderColor: otherType ? COLORS.primary + '30' : '#E5E7EB'
@@ -476,58 +502,9 @@ export default function AddProject() {
           )}
         </Animated.View>
 
-        {/* Materials Section */}
-        {userMaterials.length > 0 && (
-          <Animated.View
-            entering={FadeInDown.duration(400).delay(100)}
-            className="bg-white rounded-3xl p-4 mb-3"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.04,
-              shadowRadius: 12,
-              elevation: 2,
-            }}
-          >
-            <View className="flex-row items-center mb-3">
-              <View
-                className="w-10 h-10 rounded-2xl items-center justify-center mr-3"
-                style={{ backgroundColor: '#10B98115' }}
-              >
-                <MaterialIcons name="construction" size={22} color="#10B981" />
-              </View>
-              <Text
-                className="text-lg flex-1"
-                style={{
-                  fontFamily: "OpenSans_700Bold",
-                  color: '#1F2937',
-                }}
-              >
-                {t("availableMaterial")}
-              </Text>
-            </View>
-
-            <View className="bg-emerald-50 rounded-2xl p-3">
-              {userMaterials.map((m, index) => (
-                <View key={m} className={`flex-row items-center ${index !== userMaterials.length - 1 ? 'mb-2' : ''}`}>
-                  <View className="w-6 h-6 rounded-full bg-emerald-100 items-center justify-center mr-3">
-                    <MaterialIcons name="check" size={16} color="#10B981" />
-                  </View>
-                  <Text
-                    className="text-gray-800 text-base flex-1"
-                    style={{ fontFamily: "OpenSans_500Medium" }}
-                  >
-                    {m}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </Animated.View>
-        )}
-
         {/* Budget Section */}
         <Animated.View
-          entering={FadeInDown.duration(400).delay(150)}
+          entering={FadeInDown.duration(400).delay(100)}
           className="bg-white rounded-3xl p-4 mb-3"
           style={{
             shadowColor: "#000",
@@ -608,13 +585,13 @@ export default function AddProject() {
             >
               <Text
                 className="text-base flex-1"
-                style={{ 
+                style={{
                   fontFamily: selectedBudget ? "OpenSans_600SemiBold" : "OpenSans_400Regular",
                   color: selectedBudget ? COLORS.primary : '#9CA3AF'
                 }}
               >
                 {selectedBudget
-                  ? BUDGET_OPTIONS.find((b) => b.value === selectedBudget).label
+                  ? BUDGET_OPTIONS.find((b) => b.value === selectedBudget)?.label || selectedBudget
                   : t("chooseRange")}
               </Text>
               <MaterialIcons
@@ -628,7 +605,7 @@ export default function AddProject() {
 
         {/* Photos Section */}
         <Animated.View
-          entering={FadeInDown.duration(400).delay(200)}
+          entering={FadeInDown.duration(400).delay(150)}
           className="bg-white rounded-3xl p-4 mb-3"
           style={{
             shadowColor: "#000",
@@ -658,12 +635,12 @@ export default function AddProject() {
                 </Text>
                 <Text
                   className="text-xs mt-0.5"
-                  style={{ 
+                  style={{
                     fontFamily: "OpenSans_400Regular",
                     color: '#6B7280'
                   }}
                 >
-                  {t("addPhotosInfo")}
+                  {t("managePhotos")}
                 </Text>
               </View>
             </View>
@@ -678,6 +655,7 @@ export default function AddProject() {
               <Animated.View
                 key={`${uri}-${index}`}
                 entering={FadeIn.duration(400)}
+                exiting={FadeOut.duration(200)}
                 className="w-24 h-24 mr-3 relative rounded-2xl overflow-hidden"
                 style={{
                   shadowColor: "#000",
@@ -697,7 +675,7 @@ export default function AddProject() {
                     setPhotos((prev) => prev.filter((_, i) => i !== index))
                   }
                   className="absolute top-2 right-2 w-7 h-7 rounded-full items-center justify-center"
-                  style={{ 
+                  style={{
                     backgroundColor: "rgba(0,0,0,0.7)",
                   }}
                 >
@@ -709,7 +687,7 @@ export default function AddProject() {
             <Pressable
               onPress={pickImages}
               className="w-24 h-24 items-center justify-center rounded-2xl"
-              style={{ 
+              style={{
                 backgroundColor: '#F9FAFB',
                 borderWidth: 2,
                 borderColor: '#E5E7EB',
@@ -721,10 +699,41 @@ export default function AddProject() {
                 className="text-xs text-gray-400 mt-2"
                 style={{ fontFamily: "OpenSans_500Medium" }}
               >
-                Ajouter
+                {t("add")}
               </Text>
             </Pressable>
           </ScrollView>
+        </Animated.View>
+
+        {/* Delete Button */}
+        <Animated.View
+          entering={FadeInDown.duration(400).delay(200)}
+          className="mb-4"
+        >
+          <Pressable
+            onPress={() => setDeleteConfirmVisible(true)}
+            className="bg-white rounded-3xl p-4 flex-row items-center justify-center"
+            style={{
+              shadowColor: "#EF4444",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 2,
+              borderWidth: 1.5,
+              borderColor: '#FEE2E2',
+            }}
+          >
+            <MaterialIcons name="delete-outline" size={22} color="#EF4444" />
+            <Text
+              className="text-base ml-2"
+              style={{
+                fontFamily: "OpenSans_600SemiBold",
+                color: '#EF4444',
+              }}
+            >
+              {t("deleteProject")}
+            </Text>
+          </Pressable>
         </Animated.View>
       </KeyboardAwareScrollView>
 
@@ -741,20 +750,20 @@ export default function AddProject() {
           onPress={() => setBudgetModalVisible(false)}
           className="flex-1 justify-end"
         >
-          <Animated.View 
+          <Animated.View
             entering={FadeInUp.duration(300)}
             className="bg-white rounded-t-3xl overflow-hidden"
           >
             <View className="p-5">
               <View className="w-12 h-1 bg-gray-300 rounded-full self-center mb-5" />
-              
+
               <Text
                 className="text-xl mb-4"
                 style={{ fontFamily: "OpenSans_700Bold", color: '#1F2937' }}
               >
                 {t("chooseBudget")}
               </Text>
-              
+
               {BUDGET_OPTIONS.map((item) => (
                 <Pressable
                   key={item.value}
@@ -786,37 +795,37 @@ export default function AddProject() {
                   </View>
                 </Pressable>
               ))}
-              
+
               <View style={{ height: 20 }} />
             </View>
           </Animated.View>
         </Pressable>
       </Modal>
 
-      {/* Photo Warning Modal */}
+      {/* Delete Confirmation Modal */}
       <Modal
         transparent
         animationType="fade"
-        visible={photoWarningVisible}
-        onRequestClose={() => setPhotoWarningVisible(false)}
+        visible={deleteConfirmVisible}
+        onRequestClose={() => setDeleteConfirmVisible(false)}
       >
         <View
           className="flex-1 justify-center px-5"
           style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
         >
-          <Animated.View 
+          <Animated.View
             entering={FadeIn.duration(300)}
             className="bg-white rounded-3xl overflow-hidden"
           >
             <View className="p-6">
               <View className="items-center mb-5">
-                <View 
+                <View
                   className="w-16 h-16 rounded-full items-center justify-center mb-3"
-                  style={{ backgroundColor: '#F59E0B15' }}
+                  style={{ backgroundColor: '#FEE2E2' }}
                 >
-                  <MaterialIcons name="photo-camera" size={32} color="#F59E0B" />
+                  <MaterialIcons name="delete-forever" size={32} color="#EF4444" />
                 </View>
-                
+
                 <Text
                   className="text-xl text-center mb-2"
                   style={{
@@ -824,72 +833,54 @@ export default function AddProject() {
                     color: '#1F2937',
                   }}
                 >
-                  {t("addPhotosQuestion")}
+                  {t("deleteProjectQuestion")}
                 </Text>
-                
+
                 <Text
                   className="text-base text-center leading-6"
-                  style={{ 
+                  style={{
                     fontFamily: "OpenSans_400Regular",
                     color: '#6B7280'
                   }}
                 >
-                  {t("photoBenefits")}
+                  {t("deleteProjectWarning")}
                 </Text>
-              </View>
-
-              <View className="bg-amber-50 rounded-2xl p-3 mb-5">
-                <View className="flex-row items-start">
-                  <MaterialIcons
-                    name="lightbulb"
-                    size={20}
-                    color="#F59E0B"
-                    style={{ marginTop: 2, marginRight: 10 }}
-                  />
-                  <Text
-                    className="text-sm flex-1"
-                    style={{ 
-                      fontFamily: "OpenSans_500Medium",
-                      color: '#92400E'
-                    }}
-                  >
-                    {t("photoTip")}
-                  </Text>
-                </View>
               </View>
 
               <View className="gap-3">
                 <Pressable
-                  onPress={pickImages}
+                  onPress={handleDelete}
+                  disabled={deleting}
                   className="py-4 rounded-2xl items-center justify-center flex-row"
-                  style={{ backgroundColor: COLORS.primary }}
+                  style={{
+                    backgroundColor: deleting ? '#FCA5A5' : '#EF4444',
+                    opacity: deleting ? 0.7 : 1,
+                  }}
                 >
-                  <MaterialIcons
-                    name="add-a-photo"
-                    size={20}
-                    color="#fff"
-                    style={{ marginRight: 8 }}
-                  />
+                  {deleting && (
+                    <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
+                  )}
                   <Text
                     className="text-white text-base"
                     style={{ fontFamily: "OpenSans_700Bold" }}
                   >
-                    {t("addPhotos")}
+                    {deleting ? t("deleting") : t("yesDelete")}
                   </Text>
                 </Pressable>
 
                 <Pressable
-                  onPress={proceedWithPublish}
+                  onPress={() => setDeleteConfirmVisible(false)}
+                  disabled={deleting}
                   className="py-4 rounded-2xl items-center justify-center"
-                  style={{ 
+                  style={{
                     backgroundColor: '#F3F4F6',
                   }}
                 >
                   <Text
-                    className="text-gray-600 text-base"
+                    className="text-gray-700 text-base"
                     style={{ fontFamily: "OpenSans_600SemiBold" }}
                   >
-                    {t("continueWithoutPhotos")}
+                    {t("cancel")}
                   </Text>
                 </Pressable>
               </View>

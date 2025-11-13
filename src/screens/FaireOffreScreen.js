@@ -16,6 +16,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { showMessage } from "react-native-flash-message";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { VALIDATION_RULES } from "../config/validationRules";
 
 export default function FaireOffreScreen() {
   const route = useRoute();
@@ -136,10 +137,10 @@ export default function FaireOffreScreen() {
       return;
     }
 
-    if (message.trim().length < 20) {
+    if (message.trim().length < VALIDATION_RULES.offerMessage.minLength) {
       showMessage({
         message: t("messageTooShort"),
-        description: t("messageTooShortDesc"),
+        description: t("messageTooShortDesc", { min: VALIDATION_RULES.offerMessage.minLength }),
         type: "warning",
         icon: "warning",
         duration: 3000,
@@ -440,9 +441,9 @@ export default function FaireOffreScreen() {
                 onChangeText={setMessage}
                 onFocus={() => setIsFocusedMessage(true)}
                 onBlur={() => setIsFocusedMessage(false)}
-                placeholder={t("offerMessagePlaceholder")}
+                placeholder={t("offerMessagePlaceholder", { min: VALIDATION_RULES.offerMessage.minLength })}
                 multiline
-                maxLength={400}
+                maxLength={VALIDATION_RULES.offerMessage.maxLength}
                 placeholderTextColor="#9CA3AF"
                 className="text-gray-900 text-base min-h-[120px]"
                 style={{ 
@@ -461,10 +462,10 @@ export default function FaireOffreScreen() {
                 <Text
                   style={{ fontFamily: "OpenSans_600SemiBold" }}
                   className={`text-xs ${
-                    message.length > 350 ? "text-orange-500" : message.length < 20 ? "text-red-400" : "text-gray-400"
+                    message.length > 350 ? "text-orange-500" : message.length < VALIDATION_RULES.offerMessage.minLength ? "text-red-400" : "text-gray-400"
                   }`}
                 >
-                  {message.length}/400
+                  {message.length}/{VALIDATION_RULES.offerMessage.maxLength}
                 </Text>
               </View>
             </View>
@@ -495,15 +496,15 @@ export default function FaireOffreScreen() {
 
           <Pressable
             onPress={handleSubmit}
-            disabled={!price || !message.trim() || message.trim().length < 20 || isSubmitting}
+            disabled={!price || !message.trim() || message.trim().length < VALIDATION_RULES.offerMessage.minLength || isSubmitting}
             className="rounded-2xl py-5 items-center flex-row justify-center"
             style={{
-              backgroundColor: !price || !message.trim() || message.trim().length < 20 || isSubmitting ? "#D1D5DB" : COLORS.primary,
+              backgroundColor: !price || !message.trim() || message.trim().length < VALIDATION_RULES.offerMessage.minLength || isSubmitting ? "#D1D5DB" : COLORS.primary,
               shadowColor: COLORS.primary,
               shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: !price || !message.trim() || message.trim().length < 20 || isSubmitting ? 0 : 0.3,
+              shadowOpacity: !price || !message.trim() || message.trim().length < VALIDATION_RULES.offerMessage.minLength || isSubmitting ? 0 : 0.3,
               shadowRadius: 8,
-              elevation: !price || !message.trim() || message.trim().length < 20 || isSubmitting ? 0 : 6,
+              elevation: !price || !message.trim() || message.trim().length < VALIDATION_RULES.offerMessage.minLength || isSubmitting ? 0 : 6,
             }}
           >
             {isSubmitting ? (

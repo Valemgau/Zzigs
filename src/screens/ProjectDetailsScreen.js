@@ -325,8 +325,8 @@ export default function ProjectDetailsScreen() {
           <Animated.View entering={FadeIn.duration(300)} className="relative">
             <Image
               source={images[0] ? { uri: images[0] } : defaultImage}
-              style={{ width: "100%", height: 300 }}
-              contentFit="cover"
+              style={{ width: "100%", height: 300, backgroundColor:"white" }}
+              contentFit="contain"
               priority="high"
               onError={(e) => {
                 e.source = defaultImage;
